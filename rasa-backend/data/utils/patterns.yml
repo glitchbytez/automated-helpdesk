@@ -1,0 +1,62 @@
+flows:
+  pattern_chitchat:
+    description: Conversation repair flow for off-topic interactions that won't disrupt the main conversation. should not respond to greetings or anything else for which there is a flow defined
+    name: pattern chitchat
+    steps:
+      - action: utter_free_chitchat_response
+      
+  pattern_completed:
+    description: Flow that asks if the user needs more help after completing their initiated use cases
+    name: pattern completed
+    steps:
+      - action: utter_can_do_something_else
+
+  pattern_search:
+    description: >
+      This is a pattern that triggered if we have a knowledge base question.
+      It will trigger the search action and then ask if the user needs more help
+    name: pattern search
+  #  run_pattern_completed: false
+    steps:
+      - action: action_trigger_search
+      - link: check_satisfaction
+
+  pattern_human_handoff:
+    description: Direct live chat handoff to connect users immediately with a human agent for real-time assistance when they explicitly request to speak with a person or when automated support cannot resolve their issue
+    steps:
+      - collect: confirm_human_handoff
+        next:
+          - if: slots.confirm_human_handoff
+            then:
+              - action: action_human_handoff
+                next: END
+          - else:
+              - action: utter_human_handoff_cancelled
+                next: END
+
+  pattern_cannot_handle:
+    description: |
+      Conversation repair flow for addressing failed command generation scenarios
+    name: pattern cannot handle
+    steps:
+      - noop: true
+        next:
+          # chitchat fallback
+          - if: "'{{context.reason}}' = 'cannot_handle_chitchat'"
+            then:
+              - action: utter_cannot_handle
+                next: "END"
+          # fallback for things that are not supported
+          - if: "'{{context.reason}}' = 'cannot_handle_not_supported'"
+            then:
+              - action: utter_cannot_handle
+                next: END
+          # fallback for search flow
+          - if: "'{{context.reason}}' = 'cannot_handle_default'"
+            then:
+              - action: utter_no_knowledge
+              - link: create_support_ticket
+          # default
+          - else:
+              - action: utter_ask_rephrase
+                next: END

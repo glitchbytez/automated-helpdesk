@@ -1,0 +1,80 @@
+version: "3.1"
+
+slots:
+  progression_type:
+    type: categorical
+    values:
+      - roll_forward
+      - level_progression
+      - semester_progression
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  current_level_semester:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  target_level_semester:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  course_codes_for_registration:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  late_registration_proof:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+
+responses:
+  utter_level_progression_intro:
+    - text: "I'll help you with your level progression request. Let me collect the necessary details."
+      metadata:
+        rephrase: True
+  
+  utter_ask_progression_type:
+    - text: "What type of progression do you need? You can say: roll forward to next semester, progress to next level, or change semester."
+      metadata:
+        rephrase: True
+  
+  utter_invalid_progression_type:
+    - text: "Please select a valid progression type: Roll Forward, Level Progression, or Semester Progression."
+      metadata:
+        rephrase: True
+  
+  utter_ask_current_level_semester_for_progression:
+    - text: "What is your current academic level and semester?"
+      metadata:
+        rephrase: True
+  
+  utter_ask_target_level_semester:
+    - text: "What level and semester do you want to progress to?"
+      metadata:
+        rephrase: True
+  
+  utter_ask_course_codes_for_registration:
+    - text: "Which course codes do you want to register for in the new level/semester? (Optional)"
+      metadata:
+        rephrase: True
+  
+  utter_ask_late_registration_proof:
+    - text: "Do you have proof of late registration fee payment? Please describe what documents you can provide."
+      metadata:
+        rephrase: True
+
+  utter_invalid_level_semester:
+    - text: "Please provide a valid level and semester in the format 'Level X Semester Y' where level is 1-6 and semester is 1 or 2 (e.g., Level 1 Semester 2)."
+      metadata:
+        rephrase: True
+
+actions:
+  - action_create_level_progression_ticket 

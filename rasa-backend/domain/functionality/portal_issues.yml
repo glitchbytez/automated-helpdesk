@@ -1,0 +1,77 @@
+version: "3.1"
+
+slots:
+  portal_error_type:
+    type: categorical
+    values:
+      - registration_date_error
+      - billing_mode_error
+      - repeat_courses_error
+      - dates_missing_error
+      - results_viewing_error
+      - other_portal_error
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  portal_error_message:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  intended_action:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  affected_courses:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+
+responses:
+  utter_portal_issues_intro:
+    - text: "I'll help you resolve your portal issue. Let me gather the details about the problem you're experiencing."
+      metadata:
+        rephrase: True
+  
+  utter_ask_portal_error_type:
+    - text: "What type of portal error are you experiencing? You can describe: registration date error, billing mode error, repeat courses error, missing dates error, cannot view results, or other portal error."
+      metadata:
+        rephrase: True
+  
+  utter_invalid_portal_error_type:
+    - text: "Please select a valid portal error type from the options provided."
+      metadata:
+        rephrase: True
+  
+  utter_ask_portal_error_message:
+    - text: "Please provide the exact error message you see on the portal:"
+      metadata:
+        rephrase: True
+  
+  utter_ask_intended_action:
+    - text: "What were you trying to do when this error occurred?"
+      metadata:
+        rephrase: True
+  
+  utter_ask_affected_courses:
+    - text: "Which course codes are affected by this issue? (If applicable)"
+      metadata:
+        rephrase: True
+  
+  utter_ask_current_level_semester_for_portal:
+    - text: "What is your current academic level and semester?"
+      metadata:
+        rephrase: True
+
+  utter_invalid_level_semester:
+    - text: "Please provide a valid level and semester in the format 'Level X Semester Y' where level is 1-6 and semester is 1 or 2 (e.g., Level 1 Semester 2)."
+      metadata:
+        rephrase: True
+
+actions:
+  - action_create_portal_issues_ticket 

@@ -1,0 +1,46 @@
+flows:
+  level_progression:
+    description: Handle level progression and roll forward requests between semesters and levels
+    steps:
+      - action: utter_level_progression_intro
+      
+      - collect: user_email
+        description: User's email address for ticket creation
+        rejections:
+          - if: not (slots.user_email matches "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+            utter: utter_invalid_email
+      
+      - collect: registration_number
+        description: User's registration number (e.g., R236992Y)
+        rejections:
+          - if: not (slots.registration_number matches "^[Rr][0-9]{6}[A-Za-z]$")
+            utter: utter_invalid_registration_number
+      
+      - collect: progression_type
+        description: Type of progression request
+        rejections:
+          - if: not (slots.progression_type matches "^(roll_forward|level_progression|semester_progression)$")
+            utter: utter_invalid_progression_type
+      
+      - collect: current_level_semester
+        description: Current academic level and semester
+        utter: utter_ask_current_level_semester_for_progression
+        rejections:
+          - if: not (slots.current_level_semester matches "^Level [1-6] Semester [12]$")
+            utter: utter_invalid_level_semester
+      
+      - collect: target_level_semester
+        description: Target academic level and semester to progress to
+        rejections:
+          - if: not (slots.target_level_semester matches "^Level [1-6] Semester [12]$")
+            utter: utter_invalid_level_semester
+      
+      - collect: course_codes_for_registration
+        description: Course codes to register for in new level/semester
+        ask_before_filling: true
+      
+      - collect: late_registration_proof
+        description: Proof of late registration fee payment if applicable
+        ask_before_filling: true
+      
+      - action: action_create_level_progression_ticket 

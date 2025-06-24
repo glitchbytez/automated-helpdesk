@@ -1,0 +1,23 @@
+version: "3.1"
+
+slots:
+  ticket_id:
+    type: text
+    influence_conversation: true
+
+responses:
+  utter_ask_ticket_id:
+    - text: "Could you please provide your ticket ID?"
+      metadata:
+        rephrase: True
+    - text: "What's your ticket ID?"
+      metadata:
+        rephrase: True
+    - text: "I need your ticket ID to check its status. Could you share it?"
+      metadata:
+        rephrase: True
+  utter_invalid_ticket_id:
+    - text: "Please provide a valid ticket ID in the format TKT-DDMMYY-NNNN (e.g., TKT-250622-0032)"
+
+actions:
+  - action_track_ticket 

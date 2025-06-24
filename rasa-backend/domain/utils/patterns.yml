@@ -1,0 +1,44 @@
+version: "3.1"
+
+slots:
+  confirm_human_handoff:
+    type: bool
+    mappings:
+      - type: from_llm
+
+responses:
+  utter_free_chitchat_response:
+    - text: "placeholder"
+      metadata:
+        rephrase: True
+        rephrase_prompt: |
+          The following is a conversation with an AI assistant built with Rasa.
+          The assistant is an automated helpdesk for a university, specifically designed to help with IT and administrative questions.
+          The assistant is helpful, professional, and friendly but stays focused on its role.
+          When users engage in chitchat, the assistant should respond politely but keep responses brief and redirect the conversation back to how it can assist.
+          The assistant should not unnecessarily make reference to IT or admin.
+          The assistant should not engage in lengthy off-topic conversations and should maintain its professional helpdesk role at all times.
+          Context / previous conversation with the user:
+          {{history}}
+          {{current_input}}
+          Suggested AI Response (keep it brief and just the response, no other text):
+  utter_ask_confirm_human_handoff:
+    - text: "Do you want to be connected to a human agent?"
+      metadata:
+        rephrase: True
+  utter_human_handoff_cancelled:
+    - text: "Ok, I understand you don't want to be connected to a human agent. Is there something else I can help you with?"
+      metadata:
+        rephrase: True
+  utter_auto_escalating:
+    - text: "Let me create a support ticket for you so our team can provide the assistance you need."
+  utter_no_knowledge:
+    - text: "I wasn't able to find relevant information in my knowledge base to answer your question. For personalized assistance with this specific issue, I can connect you with a human agent who has access to additional resources and can provide more detailed support."
+      metadata:
+        rephrase: True
+    - text: "I don't have enough information in my current knowledge base to properly address your question. Our human agents have access to additional resources and can provide more comprehensive assistance."
+      metadata:
+        rephrase: True
+
+actions:
+  - action_human_handoff

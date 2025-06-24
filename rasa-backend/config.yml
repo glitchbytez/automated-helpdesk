@@ -1,0 +1,39 @@
+recipe: default.v1
+
+assistant_id: 20250411-cb-calm
+
+language: en
+
+pipeline:
+- name: CompactLLMCommandGenerator
+  llm:
+    model_group: openai-gpt-4o
+  flow_retrieval:
+    embeddings:
+      model_group: openai_text_embedding
+
+policies:
+- name: FlowPolicy
+- name: IntentlessPolicy
+  llm: 
+    model_group: openai-gpt-4o
+  embeddings:
+    model_group: openai_text_embedding
+- name: EnterpriseSearchPolicy
+  vector_store:
+    type: milvus
+    host: localhost
+    port: 19530
+    collection: test
+    user: rasa
+    password: rasa@123
+    threshold: 1.0
+  llm: 
+    model_group: openai-gpt-4o
+  embeddings:
+    model_group: openai_text_embedding
+  prompt: prompts/enterprise-search-policy-template.jinja2
+  max_history: 0
+  max_messages_in_query: 1
+#  confidence_threshold: 0.7
+  max_results: 3

@@ -1,0 +1,39 @@
+flows:
+  course_registration:
+    description: Handle course registration requests including add/delete courses, carry courses, and supplementary examination courses
+    steps:
+      - action: utter_course_registration_intro
+      
+      - collect: user_email
+        description: User's email address for ticket creation
+        rejections:
+          - if: not (slots.user_email matches "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+            utter: utter_invalid_email
+      
+      - collect: registration_number
+        description: User's registration number (e.g., R236992Y)
+        rejections:
+          - if: not (slots.registration_number matches "^[Rr][0-9]{6}[A-Za-z]$")
+            utter: utter_invalid_registration_number
+      
+      - collect: registration_request_type
+        description: Type of course registration request
+        rejections:
+          - if: not (slots.registration_request_type matches "^(add_courses|delete_courses|carry_courses|supplementary_courses)$")
+            utter: utter_invalid_registration_type
+      
+      - collect: current_level_semester
+        description: Current academic level and semester (e.g., Level 1 Semester 2)
+        utter: utter_ask_current_level_semester_for_registration
+        rejections:
+          - if: not (slots.current_level_semester matches "^Level [1-6] Semester [12]$")
+            utter: utter_invalid_level_semester
+      
+      - collect: course_codes
+        description: List of course codes involved in the request
+      
+      - collect: additional_requirements
+        description: Any additional requirements or documents needed
+        ask_before_filling: true
+      
+      - action: action_create_course_registration_ticket 

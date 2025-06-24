@@ -1,0 +1,33 @@
+flows:
+  create_support_ticket:
+    description: Create a support ticket for users who need help with technical issues, account problems, or general inquiries. Collects user details and issue description, then generates a ticket for the support team to handle.
+    steps:
+      - action: utter_escalation_intro
+      
+      - collect: user_email
+        description: User's email address for ticket creation
+        rejections:
+          - if: not (slots.user_email matches "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+            utter: utter_invalid_email
+      
+      - collect: registration_number
+        description: User's registration number (e.g., R236992Y)
+        rejections:
+          - if: not (slots.registration_number matches "^[Rr][0-9]{6}[A-Za-z]$")
+            utter: utter_invalid_registration_number
+      
+      - collect: issue_description
+        description: Detailed description of the problem or question you need help with
+      
+      - action: action_create_support_ticket
+        next:
+          - if: slots.ticket_created_successfully
+            then:
+              - action: utter_ticket_created_success
+              - set_slots:
+                  - user_satisfied_after_ticket: null
+              - link: check_satisfaction
+          - else:
+              - action: utter_ticket_creation_failed
+              - link: pattern_human_handoff
+      

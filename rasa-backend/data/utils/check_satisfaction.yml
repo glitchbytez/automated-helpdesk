@@ -1,0 +1,15 @@
+flows:
+  check_satisfaction:
+    description: Check if the user is satisfied with the resolution
+    if: False
+    steps:
+      - collect: user_satisfied_after_ticket
+        description: Ask if user is satisfied after ticket creation or wants human agent
+        ask_before_filling: true
+        next:
+          - if: slots.user_satisfied_after_ticket
+            then:
+              - action: utter_issue_resolved
+                next: END
+          - else:
+              - link: pattern_human_handoff

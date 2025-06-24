@@ -1,0 +1,42 @@
+flows:
+  portal_issues:
+    description: Handle portal-related issues including error messages and system problems
+    steps:
+      - action: utter_portal_issues_intro
+      
+      - collect: user_email
+        description: User's email address for ticket creation
+        rejections:
+          - if: not (slots.user_email matches "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+            utter: utter_invalid_email
+      
+      - collect: registration_number
+        description: User's registration number (e.g., R236992Y)
+        rejections:
+          - if: not (slots.registration_number matches "^[Rr][0-9]{6}[A-Za-z]$")
+            utter: utter_invalid_registration_number
+      
+      - collect: portal_error_type
+        description: Type of portal error or issue
+        rejections:
+          - if: not (slots.portal_error_type matches "^(registration_date_error|billing_mode_error|repeat_courses_error|dates_missing_error|results_viewing_error|other_portal_error)$")
+            utter: utter_invalid_portal_error_type
+      
+      - collect: portal_error_message
+        description: Exact error message displayed on the portal
+      
+      - collect: intended_action
+        description: What you were trying to do when the error occurred
+      
+      - collect: affected_courses
+        description: Course codes affected by this issue
+        ask_before_filling: true
+      
+      - collect: current_level_semester
+        description: Your current academic level and semester
+        utter: utter_ask_current_level_semester_for_portal
+        rejections:
+          - if: not (slots.current_level_semester matches "^Level [1-6] Semester [12]$")
+            utter: utter_invalid_level_semester
+      
+      - action: action_create_portal_issues_ticket 

@@ -1,0 +1,136 @@
+version: "3.1"
+
+slots:
+  user_email:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  registration_number:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  user_name:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  issue_subject:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  issue_description:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  issue_priority:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  ticket_created_successfully:
+    type: bool
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  created_ticket_id:
+    type: text
+    influence_conversation: false  
+    mappings:
+      - type: from_llm
+  
+  ticket_status:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  user_satisfied_after_ticket:
+    type: bool
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+
+responses:
+  utter_escalation_intro:
+    - text: "I'll create a support ticket for you so our team can assist you directly. I'll need to collect some basic information and details about your issue."
+      metadata:
+        rephrase: True
+  
+  utter_ask_user_email:
+    - text: "Please provide your email address:"
+      metadata:
+        rephrase: True
+  
+  utter_invalid_email:
+    - text: "Please provide a valid email address (e.g., john.doe@example.com)."
+      metadata:
+        rephrase: True
+  
+  utter_ask_registration_number:
+    - text: "Please provide your registration number (format: R123456Y):"
+      metadata:
+        rephrase: True
+  
+  utter_invalid_registration_number:
+    - text: "Please provide a valid registration number in the format R123456Y (R followed by 6 digits and a letter). You can type in uppercase or lowercase."
+      metadata:
+        rephrase: True
+  
+  utter_ask_user_name:
+    - text: "Please provide your full name:"
+      metadata:
+        rephrase: True
+  
+  utter_ask_issue_subject:
+    - text: "Please provide a brief subject or title for your issue:"
+      metadata:
+        rephrase: True
+  
+  utter_ask_issue_description:
+    - text: "Please describe your issue or question in detail. Include any error messages, steps you've tried, and what specific help you need:"
+      metadata:
+        rephrase: True
+  
+  utter_ask_issue_priority:
+    - text: "What priority level would you assign to this issue? (Low, Medium, High, or Critical)"
+      metadata:
+        rephrase: True
+  
+  utter_invalid_priority:
+    - text: "Please select a valid priority: Low, Medium, High, or Critical."
+      metadata:
+        rephrase: True
+  
+  utter_ticket_created_success:
+    - text: "Perfect! Your support ticket has been created successfully.\n\n**Ticket ID:** {created_ticket_id}\n**Subject:** {issue_subject}\n**Priority:** {issue_priority}\n\nOur support team will review your request and get back to you via email at {user_email}."
+      metadata:
+        rephrase: True
+  
+  utter_ticket_creation_failed:
+    - text: "I'm sorry, but I encountered an issue while creating your support ticket. Please try again later or contact our support team directly."
+      metadata:
+        rephrase: True
+  
+  utter_ask_user_satisfied_after_ticket:
+    - text: "Has your query been resolved, or you would like to get more help?"
+      metadata:
+        rephrase: True
+
+  utter_issue_resolved:
+    - text: "Great! I'm glad I could help you get your issue resolved."
+      metadata:
+        rephrase: True
+
+actions:
+  - action_create_support_ticket 

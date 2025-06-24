@@ -1,0 +1,10 @@
+flows:
+  track_ticket:
+    description: Help users check the status of their support tickets
+    steps:
+      - collect: ticket_id
+        description: The ID of the ticket to track (e.g., TKT-250622-0032)
+        rejections:
+          - if: not (slots.ticket_id matches "^TKT-[0-9]{6}-[0-9]{4}$")
+            utter: utter_invalid_ticket_id
+      - action: action_track_ticket 

@@ -1,0 +1,68 @@
+version: "3.1"
+
+slots:
+  details_to_amend:
+    type: categorical
+    values:
+      - gender
+      - date_of_birth
+      - id_number
+      - name
+      - address
+      - contact_details
+      - multiple_details
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  current_details:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  correct_details:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  supporting_documents:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+
+responses:
+  utter_personal_details_intro:
+    - text: "I'll help you with your personal details amendment request. Let me collect the necessary information."
+      metadata:
+        rephrase: True
+  
+  utter_ask_details_to_amend:
+    - text: "Which personal details need to be amended? You can say: gender, date of birth, ID number, name, address, contact details, or multiple details."
+      metadata:
+        rephrase: True
+  
+  utter_invalid_detail_type:
+    - text: "Please select a valid detail type that needs to be amended."
+      metadata:
+        rephrase: True
+  
+  utter_ask_current_details:
+    - text: "What are the current incorrect details on file that need to be changed?"
+      metadata:
+        rephrase: True
+  
+  utter_ask_correct_details:
+    - text: "What are the correct details that should be updated?"
+      metadata:
+        rephrase: True
+  
+  utter_ask_supporting_documents:
+    - text: "Please list the supporting documents you can provide (e.g., Birth Certificate, National ID, Marriage Certificate):"
+      metadata:
+        rephrase: True
+
+actions:
+  - action_create_personal_details_ticket 

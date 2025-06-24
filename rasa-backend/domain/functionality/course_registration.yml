@@ -1,0 +1,70 @@
+version: "3.1"
+
+slots:
+  registration_request_type:
+    type: categorical
+    values:
+      - add_courses
+      - delete_courses
+      - carry_courses
+      - supplementary_courses
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  current_level_semester:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  course_codes:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+  
+  additional_requirements:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_llm
+
+responses:
+  utter_course_registration_intro:
+    - text: "I'll help you with your course registration request. Let me collect the necessary information."
+      metadata:
+        rephrase: True
+  
+  utter_ask_registration_request_type:
+    - text: "What type of course registration do you need? You can say: add courses, delete courses, register carry courses, or register supplementary courses."
+      metadata:
+        rephrase: True
+  
+  utter_invalid_registration_type:
+    - text: "Please select a valid registration type: Add Courses, Delete Courses, Carry Courses, or Supplementary Courses."
+      metadata:
+        rephrase: True
+  
+  utter_ask_current_level_semester_for_registration:
+    - text: "What is your current academic level and semester? (e.g., Level 1 Semester 2)"
+      metadata:
+        rephrase: True
+  
+  utter_ask_course_codes:
+    - text: "Please provide the course codes for this request (e.g., AAA101, BBB102):"
+      metadata:
+        rephrase: True
+  
+  utter_ask_additional_requirements:
+    - text: "Do you have any additional requirements or documents to attach? (e.g., proof of fee payment for carry/supplementary courses)"
+      metadata:
+        rephrase: True
+
+  utter_invalid_level_semester:
+    - text: "Please provide a valid level and semester in the format 'Level X Semester Y' where level is 1-6 and semester is 1 or 2 (e.g., Level 1 Semester 2)."
+      metadata:
+        rephrase: True
+
+actions:
+  - action_create_course_registration_ticket 
