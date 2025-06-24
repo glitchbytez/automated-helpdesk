@@ -1,6 +1,16 @@
 import { config } from 'dotenv';
 
-config({ path: `.env.${process.env.NODE_ENV || 'development'}.local` });
+// Load environment variables with fallback for Docker containers
+const envFile = process.env.NODE_ENV === 'production' 
+  ? '.env.production.local' 
+  : `.env.${process.env.NODE_ENV || 'development'}.local`;
+
+try {
+  config({ path: envFile });
+} catch (error) {
+  // Fallback to default .env file or environment variables in Docker
+  config();
+}
 
 export const {
     PORT,

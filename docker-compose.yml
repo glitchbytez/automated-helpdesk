@@ -1,0 +1,202 @@
+version: '3.8'
+
+services:
+  # MongoDB for helpdesk backend
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: helpdesk
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+
+  # Milvus vector database for chatbot
+  milvus:
+    image: milvusdb/milvus:v2.3.0
+    container_name: milvus
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "19530:19530"
+    depends_on:
+      - etcd
+      - minio
+    networks:
+      - app-network
+
+  # Etcd for Milvus
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.0
+    container_name: etcd
+    environment:
+      ETCD_NAME: node1
+      ETCD_DATA_DIR: /etcd-data
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+      ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd:2380
+      ETCD_INITIAL_CLUSTER: node1=http://etcd:2380
+      ETCD_INITIAL_CLUSTER_TOKEN: etcd-cluster-1
+      ETCD_INITIAL_CLUSTER_STATE: new
+    volumes:
+      - etcd_data:/etcd-data
+    networks:
+      - app-network
+
+  # MinIO for Milvus
+  minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: minio server /data --console-address ":9001"
+    networks:
+      - app-network
+
+  # Helpdesk Backend
+  helpdesk-backend:
+    build:
+      context: ./helpdesk-backend
+      dockerfile: Dockerfile
+    container_name: helpdesk-backend
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/helpdesk?authSource=admin
+      JWT_SECRET: your-jwt-secret-key
+      JWT_EXPIRES_IN: 7d
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_USERNAME: your-email@gmail.com
+      EMAIL_PASSWORD: your-email-password
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  # Chatbot Data Service
+  chatbot-data-service:
+    build:
+      context: ./chatbot-data-service
+      dockerfile: Dockerfile
+    container_name: chatbot-data-service
+    environment:
+      NODE_ENV: production
+      PORT: 5502
+      MILVUS_HOST: milvus
+      MILVUS_PORT: 19530
+      MILVUS_USER: rasa
+      MILVUS_PASSWORD: rasa@123
+      OPENAI_API_KEY: your-openai-api-key
+    ports:
+      - "3002:5502"
+    depends_on:
+      - milvus
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - app-network
+
+  # Chatbot Server (WebSocket)
+  chatbot-server:
+    build:
+      context: ./chatbot-server
+      dockerfile: Dockerfile
+    container_name: chatbot-server
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/helpdesk?authSource=admin
+      HELPDESK_API_URL: http://helpdesk-backend:5000
+    ports:
+      - "3003:3003"
+    depends_on:
+      - mongodb
+      - helpdesk-backend
+    networks:
+      - app-network
+
+  # Rasa Backend
+  rasa-backend:
+    build:
+      context: ./rasa-backend
+      dockerfile: Dockerfile
+    container_name: rasa-backend
+    environment:
+      OPENAI_API_KEY: your-openai-api-key
+      MILVUS_HOST: milvus
+      MILVUS_PORT: 19530
+      MILVUS_USER: rasa
+      MILVUS_PASSWORD: rasa@123
+    ports:
+      - "5005:5005"  # Rasa server
+      - "5055:5055"  # Rasa actions server
+    depends_on:
+      - milvus
+    networks:
+      - app-network
+
+  # Chatbot Frontend
+  chatbot-frontend:
+    build:
+      context: ./chatbot-frontend
+      dockerfile: Dockerfile
+    container_name: chatbot-frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_RASA_URL: http://localhost:5005
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:3003
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rasa-backend
+      - chatbot-server
+    networks:
+      - app-network
+
+  # Helpdesk Frontend
+  helpdesk-frontend:
+    build:
+      context: ./helpdesk-frontend
+      dockerfile: Dockerfile
+    container_name: helpdesk-frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:5000
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:3003
+      NEXT_PUBLIC_MILVUS_API_URL: http://localhost:3002
+    ports:
+      - "3001:3000"
+    depends_on:
+      - helpdesk-backend
+      - chatbot-data-service
+      - chatbot-server
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+  etcd_data:
+  minio_data:
+  uploads_data:
+
+networks:
+  app-network:
+    driver: bridge 
