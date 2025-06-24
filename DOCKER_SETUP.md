@@ -95,9 +95,9 @@ Once all services are running, you can access:
 
 - **Chatbot Frontend**: http://localhost:3000
 - **Helpdesk Frontend**: http://localhost:3001
-- **Helpdesk API**: http://localhost:5000
-- **Chatbot Data Service**: http://localhost:3002 (internal port 5502)
-- **WebSocket Server**: http://localhost:3003
+- **Helpdesk API**: http://localhost:5500
+- **Chatbot Data Service**: http://localhost:5502
+- **WebSocket Server**: http://localhost:5501
 - **Rasa API**: http://localhost:5005
 - **MinIO Console**: http://localhost:9001 (admin/password123)
 
@@ -220,8 +220,8 @@ docker-compose logs milvus
 docker-compose ps
 
 # Test service endpoints
-curl http://localhost:5000/health  # Helpdesk backend
-curl http://localhost:3002/api/health  # Chatbot data service
+curl http://localhost:5500/api/health  # Helpdesk backend
+curl http://localhost:5502/api/health  # Chatbot data service
 curl http://localhost:5005/health  # Rasa server
 ```
 

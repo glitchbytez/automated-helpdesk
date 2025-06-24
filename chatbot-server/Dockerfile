@@ -14,7 +14,7 @@ RUN npm ci --only=production
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 3003
+EXPOSE 5501
 
 # Define the command to run the application
 CMD ["npm", "start"] 

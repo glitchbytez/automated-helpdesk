@@ -18,7 +18,7 @@ services:
 
   # Milvus vector database for chatbot
   milvus:
-    image: milvusdb/milvus:v2.3.0
+    image: milvusdb/milvus:v2.5.5
     container_name: milvus
     environment:
       ETCD_ENDPOINTS: etcd:2379
@@ -76,16 +76,27 @@ services:
     container_name: helpdesk-backend
     environment:
       NODE_ENV: production
-      PORT: 5000
+      PORT: 5500
       MONGODB_URI: mongodb://admin:password123@mongodb:27017/helpdesk?authSource=admin
-      JWT_SECRET: your-jwt-secret-key
+      JWT_SECRET: secret_token
       JWT_EXPIRES_IN: 7d
+      JWT_COOKIE_EXPIRES_IN: 1
+      REFRESH_TOKEN_SECRET: your_refresh_token_secret
+      REFRESH_TOKEN_EXPIRES_IN: 30d
+      API_KEY_SECRET: chatbot_server_api_key_12345
+      EMAIL_SERVICE: gmail
       EMAIL_HOST: smtp.gmail.com
       EMAIL_PORT: 587
-      EMAIL_USERNAME: your-email@gmail.com
-      EMAIL_PASSWORD: your-email-password
+      EMAIL_USER: timblaron5@gmail.com
+      EMAIL_PASSWORD: bawkyuzdbkwytzyw
+      EMAIL_FROM: timblaron5@gmail.com
+      EMAIL_FROM_NAME: Campus Support
+      STORAGE_TYPE: local
+      STORAGE_PATH: ./uploads
+      FRONTEND_URL: http://localhost:3001
+      CORS_ORIGIN: http://localhost:3001,http://localhost:3000
     ports:
-      - "5000:5000"
+      - "5500:5500"
     depends_on:
       - mongodb
     networks:
@@ -104,9 +115,12 @@ services:
       MILVUS_PORT: 19530
       MILVUS_USER: rasa
       MILVUS_PASSWORD: rasa@123
-      OPENAI_API_KEY: your-openai-api-key
+      COLLECTION_NAME: test
+      FORCE_RECREATE_COLLECTION: false
+      OPENAI_API_KEY: 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
+      OPENAI_MODEL: text-embedding-3-small
     ports:
-      - "3002:5502"
+      - "5502:5502"
     depends_on:
       - milvus
     volumes:
@@ -122,11 +136,12 @@ services:
     container_name: chatbot-server
     environment:
       NODE_ENV: production
-      PORT: 3003
+      PORT: 5501
       MONGODB_URI: mongodb://admin:password123@mongodb:27017/helpdesk?authSource=admin
-      HELPDESK_API_URL: http://helpdesk-backend:5000
+      BACKEND_API_URL: http://helpdesk-backend:5500/api/v1
+      HELPDESK_API_URL: http://helpdesk-backend:5500
     ports:
-      - "3003:3003"
+      - "5501:5501"
     depends_on:
       - mongodb
       - helpdesk-backend
@@ -140,7 +155,7 @@ services:
       dockerfile: Dockerfile
     container_name: rasa-backend
     environment:
-      OPENAI_API_KEY: your-openai-api-key
+      OPENAI_API_KEY: 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
       MILVUS_HOST: milvus
       MILVUS_PORT: 19530
       MILVUS_USER: rasa
@@ -162,7 +177,7 @@ services:
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_RASA_URL: http://localhost:5005
-      NEXT_PUBLIC_SOCKET_URL: http://localhost:3003
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:5501
     ports:
       - "3000:3000"
     depends_on:
@@ -179,9 +194,9 @@ services:
     container_name: helpdesk-frontend
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://localhost:5000
-      NEXT_PUBLIC_SOCKET_URL: http://localhost:3003
-      NEXT_PUBLIC_MILVUS_API_URL: http://localhost:3002
+      NEXT_PUBLIC_API_URL: http://localhost:5500/api/v1
+      NEXT_PUBLIC_SOCKET_SERVER_URL: http://localhost:5501
+      NEXT_PUBLIC_MILVUS_API_URL: http://localhost:5502/api
     ports:
       - "3001:3000"
     depends_on:
