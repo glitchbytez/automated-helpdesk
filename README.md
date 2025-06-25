@@ -91,15 +91,17 @@ docker-compose up -d
 
 ### 📖 Service Documentation
 
+**[📁 Centralized Documentation](docs/)** - All service documentation in one place
+
 #### Chatbot System
-- **[Chatbot Frontend](chatbot-frontend/docs/)** - User guide, architecture, deployment
-- **[Chatbot Server](chatbot-server/docs/)** - Integration guide, technical architecture
-- **[Rasa Backend](rasa-backend/docs/)** - Training guide, technical architecture
-- **[Chatbot Data Service](chatbot-data-service/docs/)** - Technical architecture
+- **[Chatbot Frontend](docs/chatbot-frontend/)** - User guide, architecture, deployment
+- **[Chatbot Server](docs/chatbot-server/)** - Integration guide, technical architecture
+- **[Rasa Backend](docs/rasa-backend/)** - Training guide, technical architecture
+- **[Chatbot Data Service](docs/chatbot-data-service/)** - Technical architecture
 
 #### Helpdesk System
-- **[Helpdesk Frontend](helpdesk-frontend/docs/)** - User guide, technical architecture  
-- **[Helpdesk Backend](helpdesk-backend/docs/)** - Admin guide, API documentation
+- **[Helpdesk Frontend](docs/helpdesk-frontend/)** - User guide, technical architecture  
+- **[Helpdesk Backend](docs/helpdesk-backend/)** - Admin guide, API documentation
 
 ## 🚀 Development
 
@@ -210,7 +212,8 @@ docker-compose up chatbot-frontend helpdesk-backend mongodb
 ### Documentation
 - **System Architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md)
 - **Setup Guide**: See [DOCKER_SETUP.md](DOCKER_SETUP.md)
-- **Service Docs**: Check individual service `docs/` folders
+- **All Service Documentation**: Browse [docs/](docs/) directory
+- **Documentation Index**: See [docs/README.md](docs/README.md)
 
 ### Troubleshooting
 - Check service logs: `docker-compose logs <service-name>`
