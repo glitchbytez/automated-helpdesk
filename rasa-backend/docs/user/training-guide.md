@@ -1,269 +1,324 @@
-# Rasa Chatbot Training Guide
+# Rasa Backend - Training and Management Guide
 
 ## Overview
 
-This guide covers training and managing the Rasa-powered chatbot for student support. The system handles course registration, level progression, personal details updates, portal issues, and general support.
+This guide covers how to train, test, and manage the educational helpdesk chatbot built with Rasa Pro. The system uses flow-based conversations with LLM integration for handling student support requests.
 
-## Training Data Structure
+## Prerequisites
 
-### Intent Categories
+- Rasa Pro installed and configured
+- OpenAI API key set in environment (`OPENAI_API_KEY`)
+- Milvus vector database running on localhost:19530
+- Helpdesk backend API running on localhost:5500
 
-#### 1. Course Registration
-- **Intent**: `course_registration_request`
-- **Entities**: `course_code`, `semester`, `year`
-- **Examples**:
-  - "I want to register for [CS 101](course_code)"
-  - "How do I enroll in [Mathematics](course_code)?"
-  - "Can you help me add [Biology](course_code) to my schedule?"
+## Training the Model
 
-#### 2. Level Progression
-- **Intent**: `level_progression_inquiry`
-- **Entities**: `current_level`, `target_level`, `program`
-- **Examples**:
-  - "I need to progress to the next level"
-  - "How do I advance from [Level 2](current_level) to [Level 3](target_level)?"
+### Current Model Status
 
-#### 3. Personal Details Amendment
-- **Intent**: `personal_details_update`
-- **Entities**: `detail_type`, `field_name`
-- **Examples**:
-  - "I need to update my contact information"
-  - "How can I change my [address](detail_type)?"
+**Trained Model**: `20250624-121813-right-string.tar.gz` (105KB)
+**Last Training**: June 24, 2025
 
-#### 4. Portal Issues
-- **Intent**: `portal_issues_report`
-- **Entities**: `issue_type`, `browser`
-- **Examples**:
-  - "I can't log into the portal"
-  - "The website is not loading"
-  - "I'm having trouble accessing my grades"
-
-## Training Process
-
-### 1. Model Training
+### Training Process
 
 ```bash
-# Full training
+# Navigate to rasa-backend directory
+cd rasa-backend
+
+# Train the model
 rasa train
 
-# Train only NLU
-rasa train nlu
-
 # Train with validation
-rasa data validate && rasa train
+rasa train --validation
 ```
 
-### 2. Testing
+### Training Data Structure
+
+The training data is organized by functionality:
+
+**Flow Files** (`data/functionality/`):
+- `create_support_ticket.yml` - General support ticket creation
+- `track_ticket.yml` - Ticket status tracking  
+- `course_registration.yml` - Course enrollment issues
+- `level_progression.yml` - Academic progression problems
+- `portal_issues.yml` - Learning portal technical issues
+- `personal_details_amendment.yml` - Student information updates
+
+**Domain Files** (`domain/functionality/`):
+- Mirror structure with slots, responses, and actions defined
+
+## Supported Conversation Flows
+
+### 1. General Support Ticket Creation
+
+**Trigger**: Users requesting help with any issue
+**Data Collection**:
+- Email address (validated format: user@domain.com)
+- Registration number (format: R123456Y)
+- Issue description (free text)
+
+**Auto-Processing**:
+- Subject line generation from description keywords
+- Priority assignment based on urgency indicators
+- Category classification (Login, Email, Payment, etc.)
+
+### 2. Ticket Tracking
+
+**Trigger**: Users asking about ticket status
+**Required**: Ticket ID
+**Response**: Current status, priority, subject, last update
+
+### 3. Specialized Ticket Types
+
+**Course Registration**: 
+- Handles enrollment problems
+- Collects course-specific information
+
+**Level Progression**:
+- Academic advancement issues
+- Grade/credit transfer problems
+
+**Portal Issues**:
+- Technical problems with learning platform
+- Access and functionality problems
+
+**Personal Details**:
+- Student information updates
+- Contact detail changes
+
+### 4. Human Handoff
+
+**Trigger**: Complex issues or user request
+**Action**: Transfers to live agent with context
+
+## Configuration Management
+
+### Core Configuration (`config.yml`)
+
+**Pipeline Components**:
+1. **CompactLLMCommandGenerator**: Intent classification with GPT-4o
+2. **FlowPolicy**: Conversation state management
+3. **IntentlessPolicy**: Fallback handling with embeddings
+4. **EnterpriseSearchPolicy**: Vector search in knowledge base
+
+**Key Settings**:
+- Language: English
+- Assistant ID: `20250411-cb-calm`
+- Vector search threshold: 1.0
+- Max results: 3 per query
+
+### Channel Configuration (`credentials.yml`)
+
+**Available Channels**:
+- REST API (no authentication)
+- Socket.IO (real-time WebSocket)
+- Rasa Enterprise integration
+
+**Socket.IO Settings**:
+- User message event: `user_uttered`
+- Bot response event: `bot_uttered`
+- Session persistence: Enabled
+- CORS: All origins allowed
+
+### API Integration (`endpoints.yml`)
+
+**Helpdesk Backend**:
+- Base URL: `http://localhost:5500/api/v1`
+- Timeout: 10 seconds
+- No authentication required
+
+**Vector Database**:
+- Milvus connection: localhost:19530
+- Collection: `test`
+- Credentials: rasa/rasa@123
+- Embedding dimension: 1536
+
+## Testing and Validation
+
+### Interactive Testing
 
 ```bash
-# Test NLU model
-rasa test nlu --cross-validation
+# Start interactive training session
+rasa shell
 
-# Test conversation flows
-rasa test core --stories test_stories.yml
-```
-
-### 3. Interactive Training
-
-```bash
-# Fine-tune with interactive training
-rasa interactive
-
-# Review and correct predictions
-rasa interactive --model models/latest.tar.gz
-```
-
-## Configuration
-
-### Pipeline Setup
-
-```yaml
-# config.yml
-recipe: default.v1
-language: en
-pipeline:
-  - name: WhitespaceTokenizer
-  - name: RegexFeaturizer
-  - name: LexicalSyntacticFeaturizer
-  - name: CountVectorsFeaturizer
-  - name: DIETClassifier
-    epochs: 100
-  - name: EntitySynonymMapper
-  - name: FallbackClassifier
-    threshold: 0.3
-
-policies:
-  - name: MemoizationPolicy
-  - name: RulePolicy
-  - name: TEDPolicy
-    max_history: 5
-    epochs: 100
-```
-
-### Domain Configuration
-
-```yaml
-# domain/functionality/course_registration.yml
-intents:
-  - course_registration_request
-
-entities:
-  - course_code
-  - semester
-
-slots:
-  course_code:
-    type: text
-    mappings:
-    - type: from_entity
-      entity: course_code
-
-responses:
-  utter_course_registration_help:
-  - text: "I can help you with course registration. What course would you like to register for?"
-
-actions:
-  - action_create_course_registration_ticket
-```
-
-## Custom Actions
-
-### Ticket Creation Action
-
-```python
-# actions/action_create_course_registration_ticket.py
-from rasa_sdk import Action, Tracker
-from rasa_sdk.executor import CollectingDispatcher
-import requests
-
-class ActionCreateCourseRegistrationTicket(Action):
-    def name(self) -> str:
-        return "action_create_course_registration_ticket"
-
-    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
-        course_code = tracker.get_slot("course_code")
-        student_id = tracker.get_slot("student_id")
-        
-        ticket_data = {
-            "subject": f"Course Registration - {course_code}",
-            "description": f"Course: {course_code}\nStudent ID: {student_id}",
-            "category": "course_registration",
-            "priority": "normal"
-        }
-        
-        try:
-            response = requests.post(
-                "http://helpdesk-backend:5500/api/v1/public/tickets",
-                json=ticket_data,
-                timeout=10
-            )
-            
-            if response.status_code == 201:
-                ticket = response.json()
-                dispatcher.utter_message(
-                    text=f"Created support ticket #{ticket.get('ticketId')}. "
-                         f"You'll receive assistance within 24 hours."
-                )
-            else:
-                dispatcher.utter_message(
-                    text="Sorry, I'm having trouble creating your ticket. Please try again."
-                )
-        except Exception:
-            dispatcher.utter_message(
-                text="Error processing your request. Please contact support directly."
-            )
-        
-        return []
-```
-
-## Best Practices
-
-### 1. Data Quality
-
-- Use consistent entity naming
-- Provide diverse training examples
-- Balance intent distribution
-- Include edge cases and variations
-
-### 2. Intent Design
-
-```yaml
-# Good examples - specific and clear
-- intent: course_registration_request
-  examples: |
-    - I want to register for [CS 101](course_code)
-    - Can you help me enroll in [Biology](course_code)?
-    - Registration for [MATH 201](course_code)
-
-# Avoid - too generic or complex
-- I need help
-- I want to register for CS 101 and also update my address
-```
-
-### 3. Performance Monitoring
-
-```bash
-# Regular model evaluation
-rasa test --model models/latest.tar.gz --out results/
-
-# Check confidence scores
+# Test with debugging
 rasa shell --debug
+
+# Test specific endpoints
+rasa shell --endpoints endpoints.yml
 ```
 
-## Deployment
+### Conversation Testing
 
-### Running Services
+**Test Scenarios**:
+
+1. **Support Ticket Creation**:
+   ```
+   User: I can't log into my account
+   Bot: [Collects email, registration, description]
+   Bot: [Creates ticket with auto-generated subject]
+   ```
+
+2. **Ticket Tracking**:
+   ```
+   User: Check ticket status
+   Bot: [Requests ticket ID]
+   User: TKT123456
+   Bot: [Shows status, priority, updates]
+   ```
+
+3. **Human Handoff**:
+   ```
+   User: I need to speak to someone
+   Bot: [Initiates handoff process]
+   ```
+
+### Validation Checks
+
+**Email Validation**: `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`
+**Registration Format**: `^[Rr][0-9]{6}[A-Za-z]$` (e.g., R123456Y)
+
+## Running the System
+
+### Start Rasa Server
 
 ```bash
-# Start Rasa server
-rasa run --model models/latest.tar.gz --port 5005
+# Basic start
+rasa run
 
-# Start action server
+# With action server
+rasa run actions &
+rasa run --enable-api --cors "*"
+
+# Specific endpoints
+rasa run --endpoints endpoints.yml
+
+# Debug mode
+rasa run --debug
+```
+
+### Action Server
+
+```bash
+# Start action server separately
 rasa run actions --port 5055
 
-# Health check
-curl http://localhost:5005/status
+# Debug actions
+rasa run actions --debug
 ```
 
-### Docker Deployment
+## Monitoring and Maintenance
 
-```dockerfile
-# Dockerfile
-FROM rasa/rasa:3.6.0
+### Log Monitoring
 
-COPY . /app
-WORKDIR /app
+**Action Logs**: Monitor ticket creation success/failure rates
+**API Errors**: Track helpdesk backend connectivity
+**LLM Usage**: Monitor OpenAI API consumption
 
-RUN rasa train
+### Model Performance
 
-CMD ["run", "--model", "models", "--server", "0.0.0.0", "--port", "5005"]
-```
+**Key Metrics**:
+- Successful ticket creation rate
+- Email/registration validation accuracy  
+- Subject line generation relevance
+- Priority assignment accuracy
+
+### Regular Maintenance
+
+**Weekly Tasks**:
+- Review conversation logs
+- Check failed ticket creations
+- Monitor API error rates
+- Update training data from user interactions
+
+**Monthly Tasks**:
+- Retrain model with new data
+- Review subject generation categories
+- Update priority classification keywords
+- Test all conversation flows
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Low Confidence**: Add more training examples, adjust thresholds
-2. **Entity Extraction**: Use regex patterns, synonyms
-3. **Action Failures**: Check endpoints.yml, action server logs
-4. **Performance**: Optimize pipeline, reduce model complexity
+**Ticket Creation Fails**:
+- Check helpdesk backend API (localhost:5500)
+- Verify network connectivity
+- Check API timeout settings
 
-### Testing Commands
+**Vector Search Not Working**:
+- Verify Milvus database connection
+- Check collection 'test' exists
+- Validate credentials (rasa/rasa@123)
+
+**LLM Responses Missing**:
+- Verify OPENAI_API_KEY environment variable
+- Check internet connectivity
+- Monitor API rate limits
+
+**Slot Extraction Problems**:
+- Review LLM prompt engineering
+- Check validation regex patterns
+- Test with various input formats
+
+### Debugging Commands
 
 ```bash
+# Check model loading
+rasa run --debug
+
 # Validate training data
 rasa data validate
 
-# Test specific intents
-echo "I want to register for CS 101" | rasa shell nlu
+# Test specific stories
+rasa test
 
-# Debug conversations
-rasa interactive --debug
+# Inspect model files
+rasa visualize
 ```
 
----
+## Production Deployment
 
-*This guide provides essential information for training and maintaining the Rasa chatbot system.*
+### Environment Variables
 
-*Last updated: [Current Date]*
-*Version: 1.0* 
+```bash
+export OPENAI_API_KEY="your_openai_key"
+export RASA_LOG_LEVEL="INFO"
+export RASA_PORT="5005"
+export ACTION_SERVER_PORT="5055"
+```
+
+### Process Management
+
+**Recommended**: Use process managers like PM2 or systemd
+**Health Checks**: Monitor both Rasa server and action server
+**Load Balancing**: Consider multiple Rasa instances for high traffic
+
+### Security Considerations
+
+- **API Keys**: Use secure environment variable management
+- **Database**: Change default Milvus credentials
+- **Network**: Implement proper firewall rules
+- **Monitoring**: Log all conversation data for audit
+
+## Advanced Configuration
+
+### Custom Prompts
+
+Prompt templates are stored in `prompts/` directory:
+- `enterprise-search-policy-template.jinja2`: Vector search prompts
+- Custom personality prompts for response rephrasing
+
+### Flow Customization
+
+Modify flow files in `data/functionality/` to:
+- Add new conversation paths
+- Change data collection requirements
+- Update validation rules
+- Customize response templates
+
+### Integration Extensions
+
+**Additional Channels**: Add Slack, Microsoft Teams, etc.
+**API Extensions**: Integrate with other campus systems
+**Analytics**: Add conversation analytics and reporting
+**Knowledge Base**: Expand vector database with institutional knowledge 
