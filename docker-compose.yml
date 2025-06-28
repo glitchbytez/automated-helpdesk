@@ -20,6 +20,7 @@ services:
   milvus:
     image: milvusdb/milvus:v2.5.5
     container_name: milvus
+    command: ["milvus", "run", "standalone"]
     environment:
       ETCD_ENDPOINTS: etcd:2379
       MINIO_ADDRESS: minio:9000
@@ -156,7 +157,7 @@ services:
     container_name: rasa-backend
     environment:
       OPENAI_API_KEY: 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
-      RASA_PRO_lICENSE: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkOGQ5MTI1OS1mNWFhLTRiMTEtYTYxNC05MGJkYzI3MTA5NTEiLCJpYXQiOjE3MzQ3MzY0MDksIm5iZiI6MTczNDczNjQwNSwic2NvcGUiOiJyYXNhOnBybyByYXNhOnBybzpjaGFtcGlvbiByYXNhOnZvaWNlIiwiZXhwIjoxODI5MzQ0NDA1LCJlbWFpbCI6InJvbmFsZG1hdGltYmFAb3V0bG9vay5jb20iLCJjb21wYW55IjoiUmFzYSBDaGFtcGlvbnMifQ.sRAOo8s0X0xvoC8cM_NshXq3zX_3-CaoM-vJlOfPLrAUXg7mmgqbaGybXcHB38vofpVuwIr-Qu7iwXZ22wKBdZ-PuHsQrSGK-O-eDGct0UxHVl_gf5700nrfaPYkHABr4ZaqGCDCL0kwDedEkLaSQ4kkjYJmmJkTya1TcUMjXoq0uC6h3Z57CWyJ7iswjefqjWNI9GOeUWw3uZ6GscxvGw8faazm5hYxnBC9b91hFBHPW5-KvWvCWE4E9FS8qSmckdOIChMyGpvSvX3JJs5vQV5S24SgsA_CzzoY7t169cFsAdIuBl8q9SnFcRlk3c7UJbx3kLHWVCnDgp-Rm-3kyw
+      RASA_PRO_LICENSE: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkOGQ5MTI1OS1mNWFhLTRiMTEtYTYxNC05MGJkYzI3MTA5NTEiLCJpYXQiOjE3MzQ3MzY0MDksIm5iZiI6MTczNDczNjQwNSwic2NvcGUiOiJyYXNhOnBybyByYXNhOnBybzpjaGFtcGlvbiByYXNhOnZvaWNlIiwiZXhwIjoxODI5MzQ0NDA1LCJlbWFpbCI6InJvbmFsZG1hdGltYmFAb3V0bG9vay5jb20iLCJjb21wYW55IjoiUmFzYSBDaGFtcGlvbnMifQ.sRAOo8s0X0xvoC8cM_NshXq3zX_3-CaoM-vJlOfPLrAUXg7mmgqbaGybXcHB38vofpVuwIr-Qu7iwXZ22wKBdZ-PuHsQrSGK-O-eDGct0UxHVl_gf5700nrfaPYkHABr4ZaqGCDCL0kwDedEkLaSQ4kkjYJmmJkTya1TcUMjXoq0uC6h3Z57CWyJ7iswjefqjWNI9GOeUWw3uZ6GscxvGw8faazm5hYxnBC9b91hFBHPW5-KvWvCWE4E9FS8qSmckdOIChMyGpvSvX3JJs5vQV5S24SgsA_CzzoY7t169cFsAdIuBl8q9SnFcRlk3c7UJbx3kLHWVCnDgp-Rm-3kyw
       MILVUS_HOST: milvus
       MILVUS_PORT: 19530
       MILVUS_USER: rasa
