@@ -57,7 +57,7 @@ nlg:
 # Vector store configuration for Milvus
 vector_store:
   type: milvus
-  host: localhost
+  host: milvus
   port: 19530
   collection: test
   user: rasa
