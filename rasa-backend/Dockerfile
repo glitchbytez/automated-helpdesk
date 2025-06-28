@@ -1,5 +1,5 @@
 # Use the official Rasa image as base
-FROM rasa/rasa:3.6.19-full
+FROM europe-west3-docker.pkg.dev/rasa-releases/rasa-pro/rasa-pro:3.12.18
 
 # Set the working directory
 WORKDIR /app
