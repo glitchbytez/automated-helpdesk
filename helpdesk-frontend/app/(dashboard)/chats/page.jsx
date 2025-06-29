@@ -55,6 +55,9 @@ export default function ChatsPage() {
     sessionId: ""
   })
   
+  // Ref for the messages container to enable autoscroll
+  const messagesContainerRef = useRef(null)
+  
   // Format time in 12-hour format
   const formatTime = (date) => {
     return new Intl.DateTimeFormat("en-US", {
@@ -360,6 +363,19 @@ export default function ChatsPage() {
       socketService.disconnect()
     }
   }, [user])
+  
+  // Auto-scroll to bottom when messages change for the active chat
+  useEffect(() => {
+    if (messagesContainerRef.current && activeChat) {
+      const currentChat = conversations.find(c => c.id === activeChat)
+      if (currentChat && currentChat.messages.length > 0) {
+        messagesContainerRef.current.scrollTo({
+          top: messagesContainerRef.current.scrollHeight,
+          behavior: 'smooth'
+        })
+      }
+    }
+  }, [conversations, activeChat])
   
   // Fetch chat sessions from the chatbot server
   const fetchChatSessions = async (isManualRefresh = false) => {
@@ -938,7 +954,10 @@ export default function ChatsPage() {
                       </DropdownMenu>
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1 overflow-auto p-4 space-y-4">
+                  <CardContent 
+                    ref={messagesContainerRef}
+                    className="flex-1 overflow-auto p-4 space-y-4"
+                  >
                     {currentChat?.messages.map((message) => (
                         <div
                             key={message.id}
