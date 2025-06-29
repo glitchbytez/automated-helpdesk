@@ -77,43 +77,6 @@ export const getTicketMetrics = catchAsync(async (req, res, next) => {
     console.log('=== Starting getTicketMetrics ===')
     
     try {
-        // Create sample tickets if none exist (for testing)
-        const ticketCount = await Ticket.countDocuments({})
-        console.log(`Found ${ticketCount} tickets in database`)
-        
-        if (ticketCount === 0) {
-            console.log('No tickets found, creating sample tickets...')
-            
-            // Create sample tickets with different statuses and priorities
-            const statuses = ['Open', 'In Progress', 'Pending', 'Resolved', 'Closed']
-            const priorities = ['Low', 'Medium', 'High', 'Urgent']
-            
-            try {
-                for (let i = 0; i < 10; i++) {
-                    const status = statuses[Math.floor(Math.random() * statuses.length)]
-                    const priority = priorities[Math.floor(Math.random() * priorities.length)]
-                    
-                    await Ticket.create({
-                        subject: `Test Ticket ${i+1}`,
-                        description: `This is a test ticket ${i+1}`,
-                        status,
-                        priority,
-                        category: 'Technical Support',
-                        creator: 'system',
-                        requester: {
-                            email: `test${i+1}@example.com`,
-                            registrationNumber: `REG${String(i+1).padStart(3, '0')}`,
-                            name: `Test User ${i+1}`
-                        }
-                    })
-                }
-                console.log('Sample tickets created successfully')
-            } catch (error) {
-                console.error('Error creating sample tickets:', error)
-                // Continue even if sample creation fails
-            }
-        }
-
         // Get status metrics with error handling
         let statusMetrics = []
         let priorityMetrics = []
