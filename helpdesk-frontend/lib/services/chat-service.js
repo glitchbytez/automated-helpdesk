@@ -214,7 +214,7 @@ export const chatService = {
     try {
       // Format the chat data for a ticket
       const ticketData = {
-        subject: `Chat Support: ${sessionData.userName || 'Anonymous User'}`,
+        subject: `Chat Support: ${sessionData.userName || sessionData.userEmail || 'Anonymous User'}`,
         description: `Chat session ID: ${sessionData.sessionId}\n\nTranscript:\n${sessionData.messages.map(m => `${m.from}: ${m.text}`).join('\n')}`,
         priority: "Medium",
         category: "Support",

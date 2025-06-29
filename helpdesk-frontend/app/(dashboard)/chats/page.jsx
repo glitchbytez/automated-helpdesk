@@ -142,8 +142,8 @@ export default function ChatsPage() {
           
           // Listen for new chat requests
           socketService.onNewChatRequest((data) => {
-            // Use user name or default to Anonymous User
-            const displayName = data.userName || 'Anonymous User'
+            // Use user name, email, or default to Anonymous User
+            const displayName = data.userName || data.userEmail || 'Anonymous User'
             
             toast.info(`New chat request from ${displayName}`, {
               description: `Session ID: ${data.sessionId}`,
@@ -186,7 +186,7 @@ export default function ChatsPage() {
               // Find the conversation to get the display name
               const conversation = conversations.find(c => c.id === data.sessionId)
               const displayName = conversation ? 
-                (conversation.userName || (conversation.ticketId ? `TK-${conversation.ticketId.substring(0, 4)}` : 'Anonymous User')) : 
+                (conversation.userName || conversation.userEmail || (conversation.ticketId ? `TK-${conversation.ticketId.substring(0, 4)}` : 'Anonymous User')) : 
                 'User'
               
               toast.info(`New message from ${displayName}`, {
@@ -375,7 +375,7 @@ export default function ChatsPage() {
         const formattedSessions = response.map(session => ({
           id: session.sessionId,
           user: {
-            name: session.userName || 'Anonymous User',
+            name: session.userName || session.userEmail || 'Anonymous User',
             email: session.userEmail || 'No email provided',
             avatar: "",
             status: session.disconnectedAt ? "offline" : "online"

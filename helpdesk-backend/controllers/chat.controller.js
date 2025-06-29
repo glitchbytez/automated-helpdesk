@@ -107,7 +107,7 @@ export const getChatByTicketId = catchAsync(async (req, res, next) => {
                 if (!user) {
                     // Create a temporary user
                     user = await User.create({
-                        firstName: session.userName || 'Anonymous',
+                        firstName: session.userName || session.userEmail || 'Anonymous',
                         lastName: 'User',
                         email: session.userEmail || `anonymous-${Date.now()}@example.com`,
                         password: 'temporary' + Date.now(),

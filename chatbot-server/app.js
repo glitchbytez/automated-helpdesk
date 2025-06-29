@@ -355,7 +355,7 @@ io.on('connection', socket => {
       
       // Store the mapping in MongoDB
       await cache.setSocketMapping(sessionId, socket.id, 'user', {
-        userName: userName || 'Anonymous',
+        userName: userName || userEmail || 'Anonymous',
         userEmail: userEmail || null
       });
       
@@ -367,7 +367,7 @@ io.on('connection', socket => {
           // Create a new session using the API
           await makeApiCall('POST', 'CREATE_SESSION', {
             sessionId,
-            userName: userName || 'Anonymous',
+            userName: userName || userEmail || 'Anonymous',
             userEmail: userEmail || null,
             requestLiveChat: !!requestLiveChat,
             conversationEnded: false
@@ -378,7 +378,7 @@ io.on('connection', socket => {
         if (error.response && error.response.status === 404) {
           await makeApiCall('POST', 'CREATE_SESSION', {
             sessionId,
-            userName: userName || 'Anonymous',
+            userName: userName || userEmail || 'Anonymous',
             userEmail: userEmail || null,
             requestLiveChat: !!requestLiveChat,
             conversationEnded: false
@@ -395,7 +395,7 @@ io.on('connection', socket => {
         // Notify admins about the new chat session
         io.to('admins').emit('newChatSession', {
           sessionId,
-          userName: userName || 'Anonymous',
+          userName: userName || userEmail || 'Anonymous',
           userEmail: userEmail || null,
           timestamp: new Date(),
           requestLiveChat: !!requestLiveChat
