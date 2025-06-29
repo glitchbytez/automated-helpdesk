@@ -1,3 +1,4 @@
+import mongoose from "mongoose"
 import Ticket from "../models/Ticket.model.js"
 import Message from "../models/Message.model.js"
 import Note from "../models/Note.model.js"
@@ -614,9 +615,31 @@ export const getTicketHistory = catchAsync(async (req, res, next) => {
         return next(new AppError("No ticket found with that ID", 404))
     }
 
-    const history = await TicketHistory.find({ ticket: req.params.id })
-        .populate("actor", "firstName lastName email avatar")
+    // Get history without populate first
+    const rawHistory = await TicketHistory.find({ ticket: req.params.id })
         .sort("-createdAt")
+
+    // Manually populate actor field for ObjectIds only
+    const history = await Promise.all(rawHistory.map(async (item) => {
+        const historyItem = item.toObject()
+        
+        // Check if actor is an ObjectId and populate it
+        if (historyItem.actor && mongoose.Types.ObjectId.isValid(historyItem.actor)) {
+            try {
+                // Import User model
+                const User = mongoose.model('User')
+                const user = await User.findById(historyItem.actor).select('firstName lastName email avatar')
+                if (user) {
+                    historyItem.actor = user
+                }
+            } catch (error) {
+                console.error('Error populating actor:', error)
+                // Keep the original actor value if population fails
+            }
+        }
+        
+        return historyItem
+    }))
 
     res.status(200).json({
         status: "success",

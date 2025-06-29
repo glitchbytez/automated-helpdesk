@@ -7,12 +7,34 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { TicketTable } from "@/components/ticket-table"
 import { TicketFilters } from "@/components/ticket-filters"
-import { Plus, Filter } from "lucide-react"
+import { Plus, Filter, Trash2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useAuth } from "@/contexts/auth-context"
+import { ticketService } from "@/lib/services/ticket-service"
+import { showToast } from "@/lib/utils/toast-helper"
 
 export default function TicketsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilters, setStatusFilters] = useState([])
   const [priorityFilters, setPriorityFilters] = useState([])
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { user } = useAuth()
+  
+  // Check if user has permission to delete tickets
+  const canDeleteTickets = user && (
+    user.role === 'admin' || 
+    (user.permissions && user.permissions.includes('deleteTickets'))
+  )
   
   // Make filter functions available globally for the filter component
   if (typeof window !== "undefined") {
@@ -25,6 +47,27 @@ export default function TicketsPage() {
       }
     }
   }
+
+  const handleDeleteAllTickets = async () => {
+    try {
+      setIsDeleting(true)
+      const response = await ticketService.deleteAllTickets()
+      
+      if (response.data) {
+        const deletedCount = response.data.deletedCount || 0
+        showToast.success(`Successfully deleted ${deletedCount} tickets`)
+        
+        // Refresh the ticket table by triggering a re-render
+        // This will cause the TicketTable component to reload its data
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error("Error deleting all tickets:", error)
+      showToast.error("Failed to delete tickets: " + (error.message || 'Unknown error'))
+    } finally {
+      setIsDeleting(false)
+    }
+  }
   
   return (
       <div className="space-y-4">
@@ -33,10 +76,46 @@ export default function TicketsPage() {
             <h1 className="text-xl font-semibold">Tickets</h1>
             <p className="text-xs text-muted-foreground">Manage and respond to support tickets</p>
           </div>
-          <Button size="sm" className="h-8">
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
-            <Link href="/tickets/new">New Ticket</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" className="h-8">
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              <Link href="/tickets/new">New Ticket</Link>
+            </Button>
+            
+            {canDeleteTickets && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    className="h-8"
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                    {isDeleting ? "Deleting..." : "Delete All"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete All Tickets</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete all tickets? This action cannot be undone and will permanently remove all tickets, messages, notes, and history from the system.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteAllTickets}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete All Tickets"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
 
         <Card className="p-0 overflow-hidden border border-gray-200">
