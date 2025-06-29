@@ -318,7 +318,7 @@ io.on('connection', socket => {
       await makeApiCall('PATCH', API_ENDPOINTS.UPDATE_SESSION(sessionId), updateData);
       
       // Get the user's socket ID
-      const userSocketId = await redis.get(`sessionToSocket:${sessionId}`);
+      const userSocketId = await cache.getSocketBySession(sessionId, 'user');
       
       // Notify the user that an agent has been assigned
       if (userSocketId) {
