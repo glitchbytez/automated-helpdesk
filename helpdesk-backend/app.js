@@ -27,10 +27,13 @@ const app = express()
 
 // allowed origins
 const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  "http://localhost:3002",
-  "http://localhost:5005",
+  "http://localhost:3000",   // chatbot frontend (local)
+  "http://localhost:3001",   // helpdesk frontend (local)
+  "http://localhost:3002",   // additional frontend (local)
+  "http://localhost:5005",   // rasa server (local)
+  "http://chatbot-frontend:3000",  // chatbot frontend (docker)
+  "http://helpdesk-frontend:3000", // helpdesk frontend (docker)
+  "http://rasa-backend:5005",      // rasa server (docker)
 ]
 
 // Security middleware

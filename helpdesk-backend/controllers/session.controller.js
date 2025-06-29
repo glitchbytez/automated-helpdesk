@@ -1,25 +1,6 @@
-import mongoose from "mongoose"
 import { catchAsync } from "../utils/catchAsync.js"
 import { AppError } from "../utils/appError.js"
-
-// Define the Session schema
-const SessionSchema = new mongoose.Schema({
-    sessionId: { type: String, required: true, unique: true },
-    userName: String,
-    userEmail: String,
-    ticketId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ticket' },
-    requestLiveChat: { type: Boolean, default: false },
-    agentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    agentName: String,
-    conversationEnded: { type: Boolean, default: false },
-    conversationEndedBy: String,
-    conversationEndedAt: Date,
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-}, { timestamps: true })
-
-// Create the Session model using the main mongoose connection
-const Session = mongoose.model('ChatSession', SessionSchema)
+import ChatSession from "../models/ChatSession.model.js"
 
 /**
  * Get a session by ID
@@ -27,7 +8,7 @@ const Session = mongoose.model('ChatSession', SessionSchema)
 export const getSession = catchAsync(async (req, res, next) => {
     const { sessionId } = req.params
     
-    const session = await Session.findOne({ sessionId })
+    const session = await ChatSession.findOne({ sessionId })
     
     if (!session) {
         return next(new AppError("Session not found", 404))
@@ -47,7 +28,7 @@ export const getSession = catchAsync(async (req, res, next) => {
 export const createSession = catchAsync(async (req, res, next) => {
     const sessionData = req.body
     
-    const session = await Session.create(sessionData)
+    const session = await ChatSession.create(sessionData)
     
     res.status(201).json({
         status: "success",
@@ -64,7 +45,7 @@ export const updateSession = catchAsync(async (req, res, next) => {
     const { sessionId } = req.params
     const updateData = req.body
     
-    const session = await Session.findOneAndUpdate(
+    const session = await ChatSession.findOneAndUpdate(
         { sessionId },
         updateData,
         { new: true, runValidators: true }
@@ -86,7 +67,7 @@ export const updateSession = catchAsync(async (req, res, next) => {
  * Get all sessions
  */
 export const getAllSessions = catchAsync(async (req, res, next) => {
-    const sessions = await Session.find()
+    const sessions = await ChatSession.find().sort({ createdAt: -1 })
     
     res.status(200).json({
         status: "success",
@@ -101,7 +82,7 @@ export const getAllSessions = catchAsync(async (req, res, next) => {
  * Get active chat sessions
  */
 export const getActiveSessions = catchAsync(async (req, res, next) => {
-    const sessions = await Session.find({
+    const sessions = await ChatSession.find({
         conversationEnded: { $ne: true }
     })
     
@@ -121,7 +102,7 @@ export const endConversation = catchAsync(async (req, res, next) => {
     const { sessionId } = req.params
     const { endedBy } = req.body
     
-    const session = await Session.findOneAndUpdate(
+    const session = await ChatSession.findOneAndUpdate(
         { sessionId },
         {
             conversationEnded: true,

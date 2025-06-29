@@ -1,5 +1,4 @@
 'use client'
-import Image from "next/image";
 import { ChatWidgetProvider } from '@glitchbytez/rasa-chat-widget'
 
 export default function Home() {
@@ -15,7 +14,6 @@ export default function Home() {
 
   return (
       <div>
-        <h1>hello peeps</h1>
           <ChatWidgetProvider
               socketConfig={socketConfig}
               feedbackEndpoint={feedbackEndpoint}

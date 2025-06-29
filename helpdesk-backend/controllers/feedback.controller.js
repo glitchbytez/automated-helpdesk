@@ -1,7 +1,7 @@
-import mongoose from "mongoose"
 import { catchAsync } from "../utils/catchAsync.js"
 import { AppError } from "../utils/appError.js"
 import Feedback from "../models/Feedback.model.js"
+import ChatSession from "../models/ChatSession.model.js"
 
 /**
  * Submit feedback from chatbot users
@@ -25,13 +25,13 @@ export const submitFeedback = catchAsync(async (req, res, next) => {
     // Try to find the associated session
     let sessionRef = null;
     try {
-        const session = await mongoose.model('ChatSession').findOne({ sessionId: feedbackData.sessionId });
+        const session = await ChatSession.findOne({ sessionId: feedbackData.sessionId });
         if (session) {
             sessionRef = session._id;
         }
     } catch (error) {
         // If session not found, continue without the reference
-        console.log(`Session not found for ID: ${feedbackData.sessionId}`);
+        console.log(`Session not found for ID: ${feedbackData.sessionId}`, error.message);
     }
     
     // Create feedback with session reference if available
