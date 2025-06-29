@@ -29,8 +29,17 @@ services:
     ports:
       - "19530:19530"
     depends_on:
-      - etcd
-      - minio
+      etcd:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 20s bash -c ':> /dev/tcp/127.0.0.1/19530' || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 10
+      start_period: 120s
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -50,6 +59,13 @@ services:
       ETCD_INITIAL_CLUSTER_STATE: new
     volumes:
       - etcd_data:/etcd-data
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -66,6 +82,13 @@ services:
     volumes:
       - minio_data:/data
     command: minio server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -120,12 +143,20 @@ services:
       FORCE_RECREATE_COLLECTION: false
       OPENAI_API_KEY: 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
       OPENAI_MODEL: text-embedding-3-small
+      # Retry configuration
+      MILVUS_MAX_RETRIES: 15
+      MILVUS_RETRY_DELAY: 5000
+      SERVICE_INIT_MAX_RETRIES: 5
+      SERVICE_INIT_RETRY_DELAY: 10000
+      BACKGROUND_RETRY_INTERVAL: 30000
     ports:
       - "5502:5502"
     depends_on:
-      - milvus
+      milvus:
+        condition: service_healthy
     volumes:
       - uploads_data:/app/uploads
+    restart: unless-stopped
     networks:
       - app-network
 
@@ -166,7 +197,9 @@ services:
       - "5005:5005"  # Rasa server
       - "5055:5055"  # Rasa actions server
     depends_on:
-      - milvus
+      milvus:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - app-network
 

@@ -52,29 +52,72 @@ const upload = multer({
 // ========== INITIALIZE SERVICES ==========
 let milvusService;
 let embeddingService;
+let servicesInitialized = false;
 
 async function initializeServices() {
-  try {
-    embeddingService = new EmbeddingService();
-    milvusService = new MilvusService(embeddingService);
-    await milvusService.initialize();
-    console.log('✅ Services initialized successfully');
-  } catch (error) {
-    console.error('❌ Failed to initialize services:', error.message);
-    process.exit(1);
+  const maxRetries = parseInt(process.env.SERVICE_INIT_MAX_RETRIES) || 5;
+  const retryDelay = parseInt(process.env.SERVICE_INIT_RETRY_DELAY) || 10000; // 10 seconds
+  let retryCount = 0;
+
+  while (retryCount < maxRetries && !servicesInitialized) {
+    try {
+      console.log(`🔄 Initializing services (attempt ${retryCount + 1}/${maxRetries})...`);
+      
+      embeddingService = new EmbeddingService();
+      milvusService = new MilvusService(embeddingService);
+      await milvusService.initialize();
+      
+      servicesInitialized = true;
+      console.log('✅ Services initialized successfully');
+      return true;
+    } catch (error) {
+      console.error(`❌ Failed to initialize services (attempt ${retryCount + 1}): ${error.message}`);
+      retryCount++;
+      
+      if (retryCount < maxRetries) {
+        console.log(`⏳ Retrying service initialization in ${retryDelay/1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      } else {
+        console.error(`❌ Failed to initialize services after ${maxRetries} attempts`);
+        console.error('❌ Service will continue running but may not function properly until services are available');
+        return false;
+      }
+    }
   }
+  
+  return servicesInitialized;
+}
+
+// Middleware to check if services are ready
+function ensureServicesReady(req, res, next) {
+  if (!servicesInitialized || !milvusService) {
+    return res.status(503).json({
+      error: 'Services not available',
+      message: 'Milvus service is not ready yet. Please try again later.',
+      retry_after: 30
+    });
+  }
+  next();
 }
 
 // ========== API ROUTES ==========
 
-// Health check
+// Health check - shows service status
 app.get('/api/health', (req, res) => {
   res.json({
-    status: 'healthy',
+    status: servicesInitialized ? 'healthy' : 'initializing',
+    services: {
+      milvus: servicesInitialized && milvusService ? 'ready' : 'not_ready',
+      embedding: servicesInitialized && embeddingService ? 'ready' : 'not_ready'
+    },
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });
 });
+
+// Apply middleware to all API routes except health
+app.use('/api/collection/*', ensureServicesReady);
+app.use('/api/documents/*', ensureServicesReady);
 
 // Get collection info
 app.get('/api/collection/info', async (req, res, next) => {
@@ -188,17 +231,52 @@ app.use('*', (req, res) => {
 // ========== START SERVER ==========
 async function startServer() {
   try {
-    await initializeServices();
-    
+    // Start the HTTP server regardless of service initialization status
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📚 API Documentation: http://localhost:${PORT}/api/health`);
       console.log(`🔗 Collection: ${process.env.COLLECTION_NAME || 'test'}`);
     });
+
+    // Initialize services in the background
+    initializeServices().then(success => {
+      if (!success) {
+        // Start background retry process
+        startBackgroundRetry();
+      }
+    }).catch(error => {
+      console.error('❌ Unexpected error during service initialization:', error);
+      startBackgroundRetry();
+    });
+
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
+}
+
+// Background retry for failed service initialization
+async function startBackgroundRetry() {
+  const retryInterval = parseInt(process.env.BACKGROUND_RETRY_INTERVAL) || 30000; // 30 seconds
+  
+  console.log(`🔄 Starting background retry process (every ${retryInterval/1000} seconds)`);
+  
+  const retryTimer = setInterval(async () => {
+    if (!servicesInitialized) {
+      console.log('🔄 Attempting background service initialization...');
+      try {
+        const success = await initializeServices();
+        if (success) {
+          console.log('✅ Background service initialization successful');
+          clearInterval(retryTimer);
+        }
+      } catch (error) {
+        console.log('❌ Background retry failed:', error.message);
+      }
+    } else {
+      clearInterval(retryTimer);
+    }
+  }, retryInterval);
 }
 
 // Handle graceful shutdown

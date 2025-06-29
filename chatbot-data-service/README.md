@@ -201,6 +201,65 @@ curl -X POST http://localhost:5502/api/documents/upload \
   -F "file=@documents.json"
 ```
 
+## 🔧 Troubleshooting
+
+### Connection Issues
+
+The service includes robust connection handling for Milvus:
+
+#### Automatic Retry Logic
+- **Connection Retries**: Up to 15 attempts with exponential backoff
+- **Service Initialization**: Multiple retry attempts with configurable delays
+- **Background Recovery**: Continues trying to connect even after initial failure
+
+#### Environment Variables for Connection Tuning
+```env
+# Milvus connection retry settings
+MILVUS_MAX_RETRIES=15                    # Max connection attempts
+MILVUS_RETRY_DELAY=5000                  # Initial delay (5 seconds)
+
+# Service initialization settings  
+SERVICE_INIT_MAX_RETRIES=5               # Service init attempts
+SERVICE_INIT_RETRY_DELAY=10000           # Delay between init attempts (10 seconds)
+BACKGROUND_RETRY_INTERVAL=30000          # Background retry frequency (30 seconds)
+```
+
+#### Health Status Monitoring
+The service provides detailed health information:
+- **Service Status**: Shows if services are ready or initializing
+- **Component Status**: Individual status for Milvus and embedding services
+- **Graceful Degradation**: Server stays running even if Milvus is temporarily unavailable
+
+#### Common Connection Errors
+
+**DNS Resolution Failed**: 
+```
+Error: 14 UNAVAILABLE: Name resolution failed for target dns:milvus:19530
+```
+- **Cause**: Milvus container not ready or network issues
+- **Solution**: Service automatically retries with exponential backoff
+
+**Milvus Proxy Not Ready**:
+```
+Error: 2 UNKNOWN: service unavailable: internal: Milvus Proxy is not ready yet. please wait
+```
+- **Cause**: Milvus container started but service not fully initialized  
+- **Solution**: Automatic retry logic waits for Milvus to be fully ready
+
+#### Testing Connection
+Use the included test script:
+```bash
+node test-health.js
+```
+
+### Docker Compose Improvements
+
+The docker-compose.yml now includes:
+- **Health Checks**: Proper health checks for all dependent services
+- **Service Dependencies**: Wait for services to be healthy before starting
+- **Restart Policies**: Automatic restart on failure
+- **Startup Order**: Correct dependency chain (etcd → minio → milvus → chatbot-data-service)
+
 ### Force Recreate Collection
 
 ⚠️ **Warning: This deletes all existing data**

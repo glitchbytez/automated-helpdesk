@@ -46,12 +46,10 @@ action_endpoint:
 # For more details, refer to the documentation:
 # https://rasa.com/docs/rasa-pro/concepts/contextual-response-rephraser
 # To enable the rephraser, remove the comment symbols in the lines below.
-#nlg:
-#   type: rephrase
-#nlg:
-#  type: rephrase
-#  llm:
-#    model_group: openai-gpt-4o
+nlg:
+  type: rephrase
+  llm:
+    model_group: openai-gpt-4o
 #  prompt: prompts/rephraser_demo_personality_prompt.jinja2
 
 # Vector store configuration for Milvus

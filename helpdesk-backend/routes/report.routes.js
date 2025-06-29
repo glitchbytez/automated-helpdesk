@@ -14,6 +14,9 @@ reportRouter.get("/ticket-stats", reportController.getTicketStats)
 // Get ticket metrics (status and priority distribution)
 reportRouter.get("/ticket-metrics", reportController.getTicketMetrics)
 
+// Debug endpoint for troubleshooting ticket metrics
+reportRouter.get("/ticket-metrics-debug", reportController.getTicketMetricsDebug)
+
 // Get ticket volume report
 reportRouter.get("/ticket-volume", reportController.getTicketVolumeReport)
 

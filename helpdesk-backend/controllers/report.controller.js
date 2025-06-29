@@ -74,125 +74,287 @@ export const getTicketStats = catchAsync(async (req, res, next) => {
 })
 
 export const getTicketMetrics = catchAsync(async (req, res, next) => {
-    // Create a sample ticket if none exist (for testing)
-    const ticketCount = await Ticket.countDocuments({})
-    if (ticketCount === 0) {
+    console.log('=== Starting getTicketMetrics ===')
+    
+    try {
+        // Create sample tickets if none exist (for testing)
+        const ticketCount = await Ticket.countDocuments({})
+        console.log(`Found ${ticketCount} tickets in database`)
         
-        // Create sample tickets with different statuses and priorities
-        const statuses = ['Open', 'In Progress', 'Pending', 'Resolved', 'Closed']
-        const priorities = ['Low', 'Medium', 'High', 'Urgent']
-        
-        for (let i = 0; i < 10; i++) {
-            const status = statuses[Math.floor(Math.random() * statuses.length)]
-            const priority = priorities[Math.floor(Math.random() * priorities.length)]
+        if (ticketCount === 0) {
+            console.log('No tickets found, creating sample tickets...')
             
-            await Ticket.create({
-                ticketId: `TEST-${i+1}`,
-                subject: `Test Ticket ${i+1}`,
-                description: `This is a test ticket ${i+1}`,
-                status,
-                priority,
-                category: 'Technical Support',
-                requester: '6460d0a7b9f0b8e2c8fcb6a1', // Replace with a valid user ID
-                createdAt: new Date(),
-                updatedAt: new Date()
+            // Create sample tickets with different statuses and priorities
+            const statuses = ['Open', 'In Progress', 'Pending', 'Resolved', 'Closed']
+            const priorities = ['Low', 'Medium', 'High', 'Urgent']
+            
+            try {
+                for (let i = 0; i < 10; i++) {
+                    const status = statuses[Math.floor(Math.random() * statuses.length)]
+                    const priority = priorities[Math.floor(Math.random() * priorities.length)]
+                    
+                    await Ticket.create({
+                        subject: `Test Ticket ${i+1}`,
+                        description: `This is a test ticket ${i+1}`,
+                        status,
+                        priority,
+                        category: 'Technical Support',
+                        creator: 'system',
+                        requester: {
+                            email: `test${i+1}@example.com`,
+                            registrationNumber: `REG${String(i+1).padStart(3, '0')}`,
+                            name: `Test User ${i+1}`
+                        }
+                    })
+                }
+                console.log('Sample tickets created successfully')
+            } catch (error) {
+                console.error('Error creating sample tickets:', error)
+                // Continue even if sample creation fails
+            }
+        }
+
+        // Get status metrics with error handling
+        let statusMetrics = []
+        let priorityMetrics = []
+        
+        try {
+            // Use a more robust approach with $addFields to normalize case
+            statusMetrics = await Ticket.aggregate([
+                {
+                    $match: {
+                        status: { $ne: null } // Exclude tickets with null status
+                    }
+                },
+                {
+                    $addFields: {
+                        normalizedStatus: {
+                            $cond: [
+                                { $eq: [{ $type: "$status" }, "string"] },
+                                { $toUpper: "$status" }, // Convert to uppercase for case-insensitive comparison
+                                "UNKNOWN"
+                            ]
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$normalizedStatus",
+                        count: { $sum: 1 },
+                        originalStatus: { $first: "$status" } // Keep one of the original values for display
+                    }
+                },
+                {
+                    $sort: { count: -1 } // Sort by count in descending order
+                }
+            ])
+            
+            console.log('Status metrics retrieved:', statusMetrics)
+        } catch (error) {
+            console.error('Error getting status metrics:', error)
+            // Fallback to simple aggregation
+            statusMetrics = await Ticket.aggregate([
+                {
+                    $group: {
+                        _id: "$status",
+                        count: { $sum: 1 }
+                    }
+                }
+            ])
+        }
+        
+        try {
+            // Get priority metrics with similar approach
+            priorityMetrics = await Ticket.aggregate([
+                {
+                    $match: {
+                        priority: { $ne: null } // Exclude tickets with null priority
+                    }
+                },
+                {
+                    $addFields: {
+                        normalizedPriority: {
+                            $cond: [
+                                { $eq: [{ $type: "$priority" }, "string"] },
+                                { $toUpper: "$priority" }, // Convert to uppercase for case-insensitive comparison
+                                "NORMAL"
+                            ]
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$normalizedPriority",
+                        count: { $sum: 1 },
+                        originalPriority: { $first: "$priority" } // Keep one of the original values for display
+                    }
+                },
+                {
+                    $sort: { count: -1 } // Sort by count in descending order
+                }
+            ])
+            
+            console.log('Priority metrics retrieved:', priorityMetrics)
+        } catch (error) {
+            console.error('Error getting priority metrics:', error)
+            // Fallback to simple aggregation
+            priorityMetrics = await Ticket.aggregate([
+                {
+                    $group: {
+                        _id: "$priority",
+                        count: { $sum: 1 }
+                    }
+                }
+            ])
+        }
+        
+        // Format status data - use the standard case for display
+        const statusData = statusMetrics.map(item => {
+            // Handle both complex and simple aggregation results
+            const statusName = item.originalStatus || item._id || 'Unknown'
+            const standardStatus = getStandardStatusName(statusName)
+            return {
+                name: standardStatus,
+                value: item.count || 0,
+                color: getStatusColor(standardStatus)
+            }
+        })
+        
+        // Format priority data - use the standard case for display
+        const priorityData = priorityMetrics.map(item => {
+            // Handle both complex and simple aggregation results
+            const priorityName = item.originalPriority || item._id || 'Medium'
+            const standardPriority = getStandardPriorityName(priorityName)
+            return {
+                name: standardPriority,
+                value: item.count || 0,
+                color: getPriorityColor(standardPriority)
+            }
+        })
+        
+        // Ensure we have at least some default data if aggregation returns empty
+        if (statusData.length === 0) {
+            statusData.push({
+                name: 'Open',
+                value: 0,
+                color: getStatusColor('Open')
             })
         }
+        
+        if (priorityData.length === 0) {
+            priorityData.push({
+                name: 'Medium',
+                value: 0,
+                color: getPriorityColor('Medium')
+            })
+        }
+        
+        // Log the data for debugging
+        console.log('Ticket metrics data:', { statusData, priorityData })
+        
+        // Return the data in the format expected by the frontend
+        res.status(200).json({
+            status: "success",
+            data: {
+                statusData,
+                priorityData
+            }
+        })
+        
+        console.log('=== Successfully completed getTicketMetrics ===')
+        
+    } catch (error) {
+        console.error('=== Error in getTicketMetrics ===')
+        console.error('Error name:', error.name)
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+        
+        // Re-throw the error to be handled by the global error handler
+        throw error
     }
+})
+
+export const getTicketMetricsDebug = catchAsync(async (req, res, next) => {
+    console.log('=== DEBUG: Starting getTicketMetricsDebug ===')
     
-    // Use a more robust approach with $addFields to normalize case
-    const statusMetrics = await Ticket.aggregate([
-        {
-            $match: {
-                status: { $ne: null } // Exclude tickets with null status
-            }
-        },
-        {
-            $addFields: {
-                normalizedStatus: {
-                    $cond: [
-                        { $eq: [{ $type: "$status" }, "string"] },
-                        { $toUpper: "$status" }, // Convert to uppercase for case-insensitive comparison
-                        "UNKNOWN"
-                    ]
+    try {
+        // Step 1: Check if we can connect to database
+        console.log('Step 1: Checking database connection...')
+        const ticketCount = await Ticket.countDocuments({})
+        console.log(`Found ${ticketCount} tickets in database`)
+        
+        // Step 2: Try simple aggregation first
+        console.log('Step 2: Testing simple status aggregation...')
+        const simpleStatusAgg = await Ticket.aggregate([
+            {
+                $group: {
+                    _id: "$status",
+                    count: { $sum: 1 }
                 }
             }
-        },
-        {
-            $group: {
-                _id: "$normalizedStatus",
-                count: { $sum: 1 },
-                originalStatus: { $first: "$status" } // Keep one of the original values for display
-            }
-        },
-        {
-            $sort: { count: -1 } // Sort by count in descending order
-        }
-    ])
-    
-    // Get priority metrics with similar approach
-    const priorityMetrics = await Ticket.aggregate([
-        {
-            $match: {
-                priority: { $ne: null } // Exclude tickets with null priority
-            }
-        },
-        {
-            $addFields: {
-                normalizedPriority: {
-                    $cond: [
-                        { $eq: [{ $type: "$priority" }, "string"] },
-                        { $toUpper: "$priority" }, // Convert to uppercase for case-insensitive comparison
-                        "NORMAL"
-                    ]
+        ])
+        console.log('Simple status aggregation result:', simpleStatusAgg)
+        
+        // Step 3: Try simple priority aggregation
+        console.log('Step 3: Testing simple priority aggregation...')
+        const simplePriorityAgg = await Ticket.aggregate([
+            {
+                $group: {
+                    _id: "$priority",
+                    count: { $sum: 1 }
                 }
             }
-        },
-        {
-            $group: {
-                _id: "$normalizedPriority",
-                count: { $sum: 1 },
-                originalPriority: { $first: "$priority" } // Keep one of the original values for display
+        ])
+        console.log('Simple priority aggregation result:', simplePriorityAgg)
+        
+        // Step 4: Format data with basic mapping
+        console.log('Step 4: Formatting data...')
+        const statusData = simpleStatusAgg.map(item => ({
+            name: item._id || 'Unknown',
+            value: item.count || 0,
+            color: '#3b82f6'
+        }))
+        
+        const priorityData = simplePriorityAgg.map(item => ({
+            name: item._id || 'Medium',
+            value: item.count || 0,
+            color: '#f59e0b'
+        }))
+        
+        console.log('Formatted statusData:', statusData)
+        console.log('Formatted priorityData:', priorityData)
+        
+        // Step 5: Send response
+        console.log('Step 5: Sending response...')
+        res.status(200).json({
+            status: "success",
+            debug: true,
+            ticketCount,
+            data: {
+                statusData,
+                priorityData
             }
-        },
-        {
-            $sort: { count: -1 } // Sort by count in descending order
-        }
-    ])
-    
-    // Format status data - use the standard case for display
-    const statusData = statusMetrics.map(item => {
-        // Map normalized status back to standard case for consistent display
-        const standardStatus = getStandardStatusName(item.originalStatus)
-        return {
-            name: standardStatus,
-            value: item.count,
-            color: getStatusColor(standardStatus)
-        }
-    })
-    
-    // Format priority data - use the standard case for display
-    const priorityData = priorityMetrics.map(item => {
-        // Map normalized priority back to standard case for consistent display
-        const standardPriority = getStandardPriorityName(item.originalPriority)
-        return {
-            name: standardPriority,
-            value: item.count,
-            color: getPriorityColor(standardPriority)
-        }
-    })
-    
-    // Log the data for debugging
-    console.log('Ticket metrics data:', { statusData, priorityData })
-    
-    // Return the data in the format expected by the frontend
-    res.status(200).json({
-        status: "success",
-        data: {
-            statusData,
-            priorityData
-        }
-    })
+        })
+        
+        console.log('=== DEBUG: Successfully completed getTicketMetricsDebug ===')
+        
+    } catch (error) {
+        console.error('=== DEBUG: Error in getTicketMetricsDebug ===')
+        console.error('Error name:', error.name)
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+        
+        // Send detailed error in development
+        res.status(500).json({
+            status: "error",
+            debug: true,
+            error: {
+                name: error.name,
+                message: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            }
+        })
+    }
 })
 
 /**

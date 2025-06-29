@@ -15,16 +15,67 @@ class MilvusService {
     // Text chunking configuration
     this.chunkSize = 1000;
     this.chunkOverlap = 200;
+    
+    // Connection retry configuration
+    this.maxRetries = parseInt(process.env.MILVUS_MAX_RETRIES) || 10;
+    this.retryDelay = parseInt(process.env.MILVUS_RETRY_DELAY) || 5000; // 5 seconds
+    this.backoffMultiplier = 1.5;
+  }
+
+  async sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async waitForMilvus() {
+    console.log('🔄 Waiting for Milvus to be ready...');
+    let retryCount = 0;
+    let delay = this.retryDelay;
+
+    while (retryCount < this.maxRetries) {
+      try {
+        console.log(`🔗 Attempt ${retryCount + 1}/${this.maxRetries}: Connecting to Milvus at ${this.host}:${this.port}`);
+        
+        // Create a new client for each attempt
+        if (this.client) {
+          try {
+            await this.client.closeConnection();
+          } catch (e) {
+            // Ignore errors when closing
+          }
+        }
+        
+        this.client = new MilvusClient({ address: `${this.host}:${this.port}` });
+        
+        // Test the connection with a simple operation
+        await this.client.listCollections();
+        
+        console.log('✅ Successfully connected to Milvus');
+        return true;
+      } catch (error) {
+        console.log(`❌ Connection attempt ${retryCount + 1} failed: ${error.message}`);
+        
+        retryCount++;
+        if (retryCount >= this.maxRetries) {
+          console.error(`❌ Failed to connect to Milvus after ${this.maxRetries} attempts`);
+          throw new Error(`Unable to connect to Milvus at ${this.host}:${this.port} after ${this.maxRetries} attempts. Last error: ${error.message}`);
+        }
+        
+        console.log(`⏳ Waiting ${delay/1000} seconds before retry...`);
+        await this.sleep(delay);
+        delay = Math.min(delay * this.backoffMultiplier, 60000); // Cap at 1 minute
+      }
+    }
+    
+    return false;
   }
 
   async initialize() {
     try {
       console.log('🔧 Initializing pure Milvus service for Rasa Enterprise Search...');
-      console.log(`🔗 Connecting to Milvus at ${this.host}:${this.port}`);
       console.log(`📋 Target collection: '${this.collectionName}' (Rasa-compatible)`);
       
-      // Create Milvus client
-      this.client = new MilvusClient({ address: `${this.host}:${this.port}` });
+      // Wait for Milvus to be ready with retry logic
+      await this.waitForMilvus();
       
       // Check if collection exists and is compatible, otherwise create/recreate
       await this.ensureCompatibleCollection();
