@@ -14,12 +14,14 @@ import { Header } from '@/components/header'
 import { useAuth } from '@/contexts/auth-context'
 import { showToast } from "@/lib/utils/toast-helper"
 import { requestService } from "@/lib/services/request-service"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function LoginPage() {
     const router = useRouter()
     const { login, error: authError, isAuthenticating } = useAuth()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     
@@ -35,6 +37,14 @@ export default function LoginPage() {
 
     const handleEmailChange = (e) => setEmail(e.target.value)
     const handlePasswordChange = (e) => setPassword(e.target.value)
+    const togglePasswordVisibility = () => setShowPassword(!showPassword)
+    
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !isLoading) {
+            e.preventDefault()
+            handleLogin()
+        }
+    }
 
     // Update local error state when auth context error changes
     useEffect(() => {
@@ -222,6 +232,7 @@ export default function LoginPage() {
                                 placeholder="name@example.com"
                                 value={email}
                                 onChange={handleEmailChange}
+                                onKeyDown={handleKeyDown}
                             />
                         </div>
                         <div className="space-y-2">
@@ -235,12 +246,27 @@ export default function LoginPage() {
                                     Forgot password?
                                 </button>
                             </div>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={handlePasswordChange}
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={handlePasswordChange}
+                                    onKeyDown={handleKeyDown}
+                                    className="pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={togglePasswordVisibility}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </CardContent>
                     <CardFooter>
