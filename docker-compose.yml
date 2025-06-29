@@ -125,6 +125,20 @@ services:
       - mongodb
     networks:
       - app-network
+    develop:
+      watch:
+        # Sync source code changes including package.json
+        - action: sync
+          path: ./helpdesk-backend
+          target: /app
+          ignore:
+            - node_modules/
+            - logs/
+            - uploads/
+            - .git/
+            - "*.log"
+        - action: rebuild
+          path: ./helpdesk-backend/package.json
 
   # Chatbot Data Service
   chatbot-data-service:
@@ -159,6 +173,18 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+    develop:
+      watch:
+        - action: sync
+          path: ./chatbot-data-service
+          target: /app
+          ignore:
+            - node_modules/
+            - uploads/
+            - .git/
+            - "*.log"
+        - action: rebuild
+          path: ./chatbot-data-service/package.json
 
   # Chatbot Server (WebSocket)
   chatbot-server:
@@ -179,6 +205,17 @@ services:
       - helpdesk-backend
     networks:
       - app-network
+    develop:
+      watch:
+        - action: sync
+          path: ./chatbot-server
+          target: /app
+          ignore:
+            - node_modules/
+            - .git/
+            - "*.log"
+        - action: rebuild
+          path: ./chatbot-server/package.json
 
   # Rasa Backend
   rasa-backend:
@@ -202,6 +239,24 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+    develop:
+      watch:
+        # Sync Python files and configurations
+        - action: sync
+          path: ./rasa-backend
+          target: /app
+          ignore:
+            - __pycache__/
+            - "*.pyc"
+            - models/
+            - .git/
+        # Rebuild when training data or config changes
+        - action: rebuild
+          path: ./rasa-backend/data/
+        - action: rebuild
+          path: ./rasa-backend/domain/
+        - action: rebuild
+          path: ./rasa-backend/config.yml
 
   # Chatbot Frontend
   chatbot-frontend:
@@ -220,6 +275,20 @@ services:
       - chatbot-server
     networks:
       - app-network
+    develop:
+      watch:
+        - action: sync
+          path: ./chatbot-frontend
+          target: /app
+          ignore:
+            - node_modules/
+            - .next/
+            - .git/
+            - "*.log"
+        - action: rebuild
+          path: ./chatbot-frontend/package.json
+        - action: rebuild
+          path: ./chatbot-frontend/next.config.mjs
 
   # Helpdesk Frontend
   helpdesk-frontend:
@@ -240,6 +309,20 @@ services:
       - chatbot-server
     networks:
       - app-network
+    develop:
+      watch:
+        - action: sync
+          path: ./helpdesk-frontend
+          target: /app
+          ignore:
+            - node_modules/
+            - .next/
+            - .git/
+            - "*.log"
+        - action: rebuild
+          path: ./helpdesk-frontend/package.json
+        - action: rebuild
+          path: ./helpdesk-frontend/next.config.mjs
 
 volumes:
   mongodb_data:

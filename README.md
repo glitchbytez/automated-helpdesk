@@ -1,138 +1,148 @@
-# Student Support Platform
+# Campus Support Helpdesk System
 
-A comprehensive multi-service application providing AI-powered chatbot assistance and human agent support for student services.
+A comprehensive multi-service application designed to streamline campus support operations with an integrated helpdesk system and AI-powered chatbot.
 
-## 🏗️ System Architecture
+## 🌟 Features
 
-This project consists of **8 interconnected services** organized into two main systems:
+### Helpdesk System
+- **Ticket Management**: Create, assign, track, and resolve support tickets
+- **Role-Based Access**: Admin, Agent, and User roles with appropriate permissions
+- **Real-time Updates**: WebSocket-based live ticket status updates
+- **Knowledge Base**: Document management for common issues and solutions
+- **Reporting & Analytics**: Comprehensive ticket metrics and performance reports
+- **Email Notifications**: Automated email alerts for ticket updates
 
-### Chatbot System (AI-Powered Support)
-- **Chatbot Frontend** (Next.js) - Student chat interface
-- **Chatbot Server** (Node.js/Socket.IO) - Real-time communication orchestrator  
-- **Rasa Backend** (Python/Rasa) - Natural language processing engine
-- **Chatbot Data Service** (Node.js) - Vector database and semantic search
-- **Milvus Vector Database** - High-performance vector storage
+### AI Chatbot
+- **Intelligent Responses**: Rasa-powered NLU for natural conversation flow
+- **Context Awareness**: Maintains conversation context across interactions
+- **Ticket Integration**: Can create and track tickets directly from chat
+- **Vector Search**: Semantic search through knowledge base using Milvus
+- **Human Handoff**: Seamless escalation to human agents when needed
+- **Multi-channel**: Web interface with potential for other platforms
 
-### Helpdesk System (Human Agent Support)
-- **Helpdesk Frontend** (Next.js) - Admin dashboard and agent interface
-- **Helpdesk Backend** (Node.js/Express) - REST API and business logic
-- **MongoDB Database** - Primary data storage
+### Technical Features
+- **Microservices Architecture**: Scalable, maintainable service-based design
+- **Real-time Communication**: WebSocket connections for live updates
+- **Vector Database**: Milvus for efficient similarity search
+- **Document Embeddings**: OpenAI embeddings for semantic understanding
+- **Responsive Design**: Modern, mobile-first UI with Tailwind CSS
+- **Security**: JWT authentication, role-based authorization, input validation
 
-### Supporting Infrastructure
-- **Etcd** - Distributed key-value store (Milvus dependency)
-- **MinIO** - S3-compatible object storage
-- **OpenAI API** - AI embeddings and language processing
+## 🏗️ Architecture
 
-## 📋 Quick Start
+### Service Overview
+```
+Frontend Layer:
+├── Helpdesk Frontend (Next.js) - Main dashboard interface
+└── Chatbot Frontend (Next.js) - Chat interface
+
+API Layer:
+├── Helpdesk Backend (Node.js) - Core business logic & REST API
+├── Chatbot Server (Node.js) - WebSocket server for real-time chat
+└── Chatbot Data Service (Node.js) - Vector database management
+
+AI Layer:
+└── Rasa Backend (Python) - NLU/NLG conversational AI
+
+Data Layer:
+├── MongoDB - Primary database (tickets, users, chats)
+└── Milvus - Vector database (embeddings, semantic search)
+```
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Docker & Docker Compose
-- Node.js 18+ (for local development)
-- Git
+- **Docker & Docker Compose** (recommended)
+- **Node.js 18+** (for local development)
+- **Python 3.8+** (for Rasa development)
 
-### 1. Clone and Setup
+### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone [repository-url]
 cd complete-project
-cp .env.production .env
 ```
 
-### 2. Start All Services
+### 2. Environment Setup
 ```bash
-docker-compose up -d
+# Create environment files (see .env.example in each service)
+cp helpdesk-backend/.env.example helpdesk-backend/.env
+cp chatbot-data-service/.env.example chatbot-data-service/.env
+# ... configure other services as needed
 ```
 
-### 3. Access Applications
-- **Student Chat Interface**: http://localhost:3000
-- **Admin Dashboard**: http://localhost:3001
-- **Rasa API**: http://localhost:5005
-- **Helpdesk API**: http://localhost:5500
+### 3. Start with Docker
+```bash
+# Start all services
+docker compose up -d
 
-## 🔗 Service URLs
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+```
+
+## 📡 Service Endpoints
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| Chatbot Frontend | http://localhost:3000 | Student chat interface |
-| Helpdesk Frontend | http://localhost:3001 | Admin/agent dashboard |
-| Chatbot Server | http://localhost:5501 | WebSocket communication |
-| Helpdesk Backend | http://localhost:5500 | REST API server |
-| Rasa Backend | http://localhost:5005 | AI/NLP processing |
-| Chatbot Data Service | http://localhost:5502 | Vector database management |
-| MongoDB | mongodb://localhost:27017 | Primary database |
-| Milvus | http://localhost:19530 | Vector database |
+| **Helpdesk Frontend** | http://localhost:3001 | Main support dashboard |
+| **Chatbot Frontend** | http://localhost:3000 | Chatbot interface |
+| **Helpdesk Backend** | http://localhost:5500 | REST API |
+| **Chatbot Data Service** | http://localhost:5502 | Vector database API |
+| **Chatbot Server** | http://localhost:5501 | WebSocket server |
+| **Rasa Backend** | http://localhost:5005 | Rasa NLU/Core API |
 
-## 🎯 Key Features
-
-### For Students
-- **AI-Powered Chat**: Natural language support for common queries
-- **Seamless Handoff**: Automatic escalation to human agents when needed
-- **Knowledge Base Search**: Semantic search through uploaded documents
-- **Multi-modal Support**: Text and file upload capabilities
-
-### For Agents & Administrators
-- **Ticket Management**: Comprehensive helpdesk functionality
-- **Real-time Chat**: Live chat interface with students
-- **User Management**: Agent and student account administration
-- **Analytics & Reporting**: Performance metrics and insights
-- **Knowledge Base Management**: Document upload and management
-
-### Technical Features
-- **Real-time Communication**: WebSocket-based messaging
-- **Vector Search**: AI-powered semantic search capabilities
-- **Containerized Deployment**: Docker-based infrastructure
-- **Scalable Architecture**: Microservices-based design
-- **Comprehensive API**: RESTful APIs with full documentation
-
-## 📚 Documentation
-
-### 🏛️ System Architecture
-- **[Complete System Architecture](ARCHITECTURE.md)** - Comprehensive technical overview
-- **[Docker Setup Guide](DOCKER_SETUP.md)** - Deployment and configuration
-
-### 📖 Service Documentation
-
-**[📁 Centralized Documentation](docs/)** - All service documentation in one place
-
-#### Chatbot System
-- **[Chatbot Frontend](docs/chatbot-frontend/)** - User guide, architecture, deployment
-- **[Chatbot Server](docs/chatbot-server/)** - Integration guide, technical architecture
-- **[Rasa Backend](docs/rasa-backend/)** - Training guide, technical architecture
-- **[Chatbot Data Service](docs/chatbot-data-service/)** - Technical architecture
-
-#### Helpdesk System
-- **[Helpdesk Frontend](docs/helpdesk-frontend/)** - User guide, technical architecture  
-- **[Helpdesk Backend](docs/helpdesk-backend/)** - Admin guide, API documentation
-
-## 🚀 Development
+## 🔧 Development
 
 ### Local Development Setup
-```bash
-# Install dependencies for each service
-cd chatbot-frontend && npm install
-cd ../helpdesk-frontend && npm install
-cd ../helpdesk-backend && npm install
-cd ../chatbot-server && npm install
-cd ../chatbot-data-service && npm install
 
-# Start development servers
-npm run dev:all  # If script is configured
+```bash
+# Start infrastructure services only
+docker compose up mongodb milvus etcd minio -d
+
+# Run individual services locally
+cd helpdesk-backend && npm install && npm run dev
+cd helpdesk-frontend && npm install && npm run dev
+cd chatbot-data-service && npm install && npm run dev
+# ... etc
 ```
 
-### Environment Configuration
-Copy `.env.production` to `.env` and update values as needed:
-- OpenAI API key for AI embeddings
-- MongoDB connection string
-- Email service configuration
-- JWT secrets and API keys
+### Development Commands
 
-### Testing
+```bash
+# View service logs
+docker compose logs -f <service-name>
+
+# Restart specific service
+docker compose restart <service-name>
+
+# Enter service container
+docker compose exec <service-name> sh
+
+# Rebuild specific service
+docker compose build <service-name>
+```
+
+### Database Access
+
+```bash
+# MongoDB
+mongosh mongodb://admin:password123@localhost:27017/helpdesk?authSource=admin
+
+# Milvus (requires Python client)
+python -c "from pymilvus import connections; connections.connect('localhost', 19530)"
+```
+
+## 🧪 Testing
+
 ```bash
 # Run tests for specific service
 cd helpdesk-backend && npm test
-cd ../chatbot-server && npm test
+cd chatbot-server && npm test
 
-# Integration testing
-docker-compose -f docker-compose.test.yml up
+# Integration testing (if configured)
+docker compose -f docker-compose.test.yml up
 ```
 
 ## 🛠️ Technology Stack
@@ -180,18 +190,18 @@ Each service includes health check endpoints:
 
 ### Development
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Production
 ```bash
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ### Individual Services
 ```bash
 # Start specific services
-docker-compose up chatbot-frontend helpdesk-backend mongodb
+docker compose up chatbot-frontend helpdesk-backend mongodb
 ```
 
 ## 🤝 Contributing
@@ -212,20 +222,14 @@ docker-compose up chatbot-frontend helpdesk-backend mongodb
 ### Documentation
 - **System Architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md)
 - **Setup Guide**: See [DOCKER_SETUP.md](DOCKER_SETUP.md)
+- **Development Guide**: See [DEVELOPMENT.md](DEVELOPMENT.md)
 - **All Service Documentation**: Browse [docs/](docs/) directory
-- **Documentation Index**: See [docs/README.md](docs/README.md)
 
 ### Troubleshooting
-- Check service logs: `docker-compose logs <service-name>`
+- Check service logs: `docker compose logs <service-name>`
 - Verify service health: `curl http://localhost:<port>/health`
 - Review environment configuration
 - Consult service-specific troubleshooting guides
-
-### Getting Help
-- Check the documentation first
-- Review existing issues
-- Create detailed bug reports
-- Include logs and environment details
 
 ---
 
