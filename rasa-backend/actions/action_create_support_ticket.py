@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Text
 import requests
 import logging
+import os
 from datetime import datetime
 
 from rasa_sdk import Action, Tracker
@@ -103,9 +104,13 @@ class ActionCreateSupportTicket(Action):
         }
         
         try:
+            # Get helpdesk API URL from environment variable
+            helpdesk_api_url = os.getenv("HELPDESK_API_URL", "http://localhost:5500")
+            api_endpoint = f"{helpdesk_api_url}/api/v1/tickets/public"
+            
             # Make API call to create ticket
             response = requests.post(
-                "http://localhost:5500/api/v1/tickets/public",
+                api_endpoint,
                 json=payload,
                 headers={"Content-Type": "application/json"},
                 timeout=10

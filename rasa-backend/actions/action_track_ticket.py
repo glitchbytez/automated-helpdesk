@@ -2,6 +2,7 @@ from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 import requests
+import os
 
 class ActionTrackTicket(Action):
     def name(self) -> Text:
@@ -19,8 +20,9 @@ class ActionTrackTicket(Action):
             return []
 
         try:
-            # Make the API request
-            url = f"http://localhost:5500/api/v1/tickets/{ticket_id}/status"
+            # Get helpdesk API URL from environment variable
+            helpdesk_api_url = os.getenv("HELPDESK_API_URL", "http://localhost:5500")
+            url = f"{helpdesk_api_url}/api/v1/tickets/{ticket_id}/status"
             response = requests.get(url)
             response.raise_for_status()
             

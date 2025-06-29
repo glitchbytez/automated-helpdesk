@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Text
 import requests
 import logging
+import os
 from datetime import datetime
 
 from rasa_sdk import Action, Tracker
@@ -110,7 +111,7 @@ class ActionCreatePersonalDetailsTicket(Action):
         try:
             # Make API call to create ticket
             response = requests.post(
-                "http://localhost:5500/api/v1/tickets/public",
+                f"{os.getenv('HELPDESK_API_URL', 'http://localhost:5500')}/api/v1/tickets/public",
                 json=payload,
                 headers={"Content-Type": "application/json"},
                 timeout=10
