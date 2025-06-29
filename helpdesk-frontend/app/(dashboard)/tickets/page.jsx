@@ -77,7 +77,11 @@ export default function TicketsPage() {
             <p className="text-xs text-muted-foreground">Manage and respond to support tickets</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" className="h-8">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
               <Plus className="h-3.5 w-3.5 mr-1.5" />
               <Link href="/tickets/new">New Ticket</Link>
             </Button>
@@ -86,9 +90,9 @@ export default function TicketsPage() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button 
-                    variant="destructive" 
+                    variant="outline" 
                     size="sm" 
-                    className="h-8"
+                    className="h-8 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
                     disabled={isDeleting}
                   >
                     <Trash2 className="h-3.5 w-3.5 mr-1.5" />
