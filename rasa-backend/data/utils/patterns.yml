@@ -28,8 +28,15 @@ flows:
         next:
           - if: slots.confirm_human_handoff
             then:
-              - action: action_human_handoff
-                next: END
+              - collect: user_email
+                next:
+                  - if: not (slots.user_email matches "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+                    then:
+                      - action: utter_invalid_email
+                        next: END
+                  - else:
+                      - action: action_human_handoff
+                        next: END
           - else:
               - action: utter_human_handoff_cancelled
                 next: END

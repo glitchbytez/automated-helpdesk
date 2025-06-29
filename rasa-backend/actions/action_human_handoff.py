@@ -14,9 +14,13 @@ class ActionHumanHandoff(Action):
             domain: Dict[Text, Any]
     ) -> List[Dict[Text, Any]]:
         try:
+            # Get user email from slots
+            user_email = tracker.get_slot("user_email")
+            
             dispatcher.utter_message(json_message={
                 "handoff": True,
                 "session_id": tracker.sender_id,
+                "user_email": user_email,
                 "message": "Connecting you to a live agent..."
             })
             return [ConversationPaused()]
