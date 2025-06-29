@@ -678,6 +678,37 @@ export const getTicketStatus = catchAsync(async (req, res, next) => {
     })
 })
 
+export const deleteAllTickets = catchAsync(async (req, res, next) => {
+    // Get count of tickets before deletion for response
+    const ticketCount = await Ticket.countDocuments()
+    
+    if (ticketCount === 0) {
+        return res.status(200).json({
+            status: "success",
+            message: "No tickets found to delete",
+            data: {
+                deletedCount: 0
+            }
+        })
+    }
+
+    // Delete all associated data first
+    await Message.deleteMany({})
+    await Note.deleteMany({})
+    await TicketHistory.deleteMany({})
+    
+    // Delete all tickets
+    const result = await Ticket.deleteMany({})
+
+    res.status(200).json({
+        status: "success",
+        message: `Successfully deleted ${result.deletedCount} tickets and all associated data`,
+        data: {
+            deletedCount: result.deletedCount
+        }
+    })
+})
+
 
 
 

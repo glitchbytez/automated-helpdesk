@@ -68,6 +68,14 @@ export const ticketService = {
   },
 
   /**
+   * Delete all tickets
+   * @returns {Promise<Object>} Response data with deleted count
+   */
+  async deleteAllTickets() {
+    return api.delete("tickets/all")
+  },
+
+  /**
    * Assign a ticket to an agent
    * @param {string} ticketId - Ticket ID
    * @param {string} agentId - Agent ID

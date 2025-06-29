@@ -20,6 +20,12 @@ ticketRouter.get("/my-tickets", ticketController.getMyTickets)
 // Get unassigned tickets
 ticketRouter.get("/unassigned", ticketController.getUnassignedTickets)
 
+// Get ticket statistics
+ticketRouter.get("/stats", ticketController.getTicketStats)
+
+// Delete all tickets (admin operation) - MUST come before /:id route
+ticketRouter.delete("/all", checkPermission("deleteTickets"), ticketController.deleteAllTickets)
+
 // Create a new ticket
 ticketRouter.post("/", checkPermission("createTickets"), ticketController.createTicket)
 
@@ -50,8 +56,5 @@ ticketRouter.post("/:id/notes", ticketController.addNote)
 
 // Get ticket history
 ticketRouter.get("/:id/history", ticketController.getTicketHistory)
-
-// Get ticket statistics
-ticketRouter.get("/stats", ticketController.getTicketStats)
 
 export default ticketRouter
