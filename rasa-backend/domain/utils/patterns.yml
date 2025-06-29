@@ -40,5 +40,10 @@ responses:
       metadata:
         rephrase: True
 
+  utter_invalid_level_semester:
+    - text: "Please provide a valid level and semester in the format 'Level X Semester Y' where level is 1-6 and semester is 1 or 2 (e.g., Level 1 Semester 2)."
+      metadata:
+        rephrase: True
+
 actions:
   - action_human_handoff
