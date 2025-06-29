@@ -19,6 +19,14 @@ export const viewport = {
 export const metadata = {
     title: "Campus Support - University Helpdesk",
     description: "Efficient ticket management and real-time chat for university support teams",
+    icons: {
+        icon: [
+            { url: '/favicon.svg', type: 'image/svg+xml' },
+            { url: '/favicon.ico', sizes: '32x32' }
+        ],
+        shortcut: '/favicon.ico',
+        apple: '/favicon.svg',
+    },
 }
 
 export default function RootLayout({ children }) {
