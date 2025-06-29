@@ -46,7 +46,7 @@ export const sendEmail = async (options) => {
     }
 
     // In development mode, just log the email instead of sending it
-    if (NODE_ENV === 'production') {
+    if (NODE_ENV !== 'production') {
         console.log('=================== EMAIL WOULD BE SENT ===================');
         console.log('To:', options.email);
         console.log('Subject:', options.subject);
