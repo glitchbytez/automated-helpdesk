@@ -391,6 +391,8 @@ io.on('connection', socket => {
       // Notify admins about the new chat session without creating a ticket
       try {
         console.log(`[SERVER] New chat session registered: ${sessionId}`);
+        // log the user name and email for debugging
+        console.log(`[SERVER] User name: ${userName} or ${userEmail} or Anonymous`);
         
         // Notify admins about the new chat session
         io.to('admins').emit('newChatSession', {
