@@ -17,16 +17,35 @@ export function TicketHistory({ ticketId }) {
         
         if (response.data && response.data.history) {
           // Format history items for display
-          const formattedHistory = response.data.history.map((item, index) => ({
-            id: index + 1,
-            action: item.action,
-            actor: {
-              name: item.actor ? `${item.actor.firstName} ${item.actor.lastName}` : "System",
-              avatar: item.actor ? item.actor.avatar : "",
-            },
-            // Use createdAt instead of timestamp since that's what the model provides
-            timestamp: item.createdAt,
-          }))
+          const formattedHistory = response.data.history.map((item, index) => {
+            let actorName = "System"
+            let actorAvatar = ""
+            
+            if (item.actor) {
+              if (typeof item.actor === 'string') {
+                // Handle string actors like 'chatbot', 'system', 'api'
+                actorName = item.actor.charAt(0).toUpperCase() + item.actor.slice(1)
+              } else if (item.actor.firstName && item.actor.lastName) {
+                // Handle populated user objects
+                actorName = `${item.actor.firstName} ${item.actor.lastName}`
+                actorAvatar = item.actor.avatar || ""
+              } else {
+                // Fallback for other cases
+                actorName = "System"
+              }
+            }
+            
+            return {
+              id: index + 1,
+              action: item.action,
+              actor: {
+                name: actorName,
+                avatar: actorAvatar,
+              },
+              // Use createdAt instead of timestamp since that's what the model provides
+              timestamp: item.createdAt,
+            }
+          })
           setHistory(formattedHistory)
         }
       } catch (error) {
