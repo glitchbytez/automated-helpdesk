@@ -16,6 +16,10 @@ class MilvusService {
     this.chunkSize = 1000;
     this.chunkOverlap = 200;
     
+    // OpenAI batching configuration
+    this.embeddingBatchSize = parseInt(process.env.OPENAI_BATCH_SIZE) || 100;
+    this.embeddingDelay = parseInt(process.env.OPENAI_BATCH_DELAY) || 1000; // 1 second
+    
     // Connection retry configuration
     this.maxRetries = parseInt(process.env.MILVUS_MAX_RETRIES) || 10;
     this.retryDelay = parseInt(process.env.MILVUS_RETRY_DELAY) || 5000; // 5 seconds
@@ -401,25 +405,59 @@ class MilvusService {
   async generateEmbeddings(texts) {
     console.log(`🧮 Generating embeddings for ${texts.length} text chunks...`);
     
-    // Use OpenAI directly for embeddings
-    const response = await fetch('https://api.openai.com/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        input: texts,
-        model: 'text-embedding-3-small'
-      })
-    });
+    // OpenAI has limits on batch size - process in chunks
+    const batchSize = this.embeddingBatchSize;
+    const batchDelay = this.embeddingDelay;
+    const allEmbeddings = [];
     
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+    console.log(`📊 Using batch size: ${batchSize}, delay: ${batchDelay}ms`);
+    
+    for (let i = 0; i < texts.length; i += batchSize) {
+      const batch = texts.slice(i, i + batchSize);
+      const batchNum = Math.floor(i/batchSize) + 1;
+      const totalBatches = Math.ceil(texts.length/batchSize);
+      
+      console.log(`📊 Processing batch ${batchNum}/${totalBatches} (${batch.length} texts)`);
+      
+      try {
+        // Add delay between batches to respect rate limits
+        if (i > 0) {
+          console.log(`⏳ Waiting ${batchDelay}ms before next batch...`);
+          await new Promise(resolve => setTimeout(resolve, batchDelay));
+        }
+        
+        const response = await fetch('https://api.openai.com/v1/embeddings', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            input: batch,
+            model: 'text-embedding-3-small'
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`❌ OpenAI API error for batch ${batchNum}:`, errorText);
+          throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        const batchEmbeddings = data.data.map(item => item.embedding);
+        allEmbeddings.push(...batchEmbeddings);
+        
+        console.log(`✅ Successfully processed batch ${batchNum}/${totalBatches}`);
+        
+      } catch (error) {
+        console.error(`❌ Error processing batch ${batchNum}:`, error.message);
+        throw error;
+      }
     }
     
-    const data = await response.json();
-    return data.data.map(item => item.embedding);
+    console.log(`✅ Generated ${allEmbeddings.length} embeddings total`);
+    return allEmbeddings;
   }
 
   splitText(text) {
