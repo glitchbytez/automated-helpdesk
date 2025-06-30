@@ -117,7 +117,7 @@ export default function EditAgentPage({ params }) {
                         email: userData.email || "",
                         phone: userData.phone || "",
                         avatar: userData.avatar || "",
-                        role: backendToDisplayRoleMapping[backendRole] || "Agent",
+                        role: backendRole, // Store backend value, not display value
                         team: backendToDisplayTeamMapping[backendTeam] || "Customer Support",
                         status: backendToDisplayStatusMapping[backendStatus] || "Active",
                         bio: userData.bio || "",
@@ -125,6 +125,7 @@ export default function EditAgentPage({ params }) {
                     })
                     
                     console.log("Loaded agent data:", {
+                        backendRole,
                         backendTeam,
                         displayTeam: backendToDisplayTeamMapping[backendTeam],
                         backendStatus,
@@ -195,12 +196,6 @@ export default function EditAgentPage({ params }) {
                 "Billing Support": "billing"
             }
             
-            const displayToBackendRoleMapping = {
-                "Admin": "admin",
-                "Agent": "agent",
-                "Limited": "limited"
-            }
-            
             const displayToBackendStatusMapping = {
                 "Active": "active",
                 "Inactive": "inactive",
@@ -213,8 +208,8 @@ export default function EditAgentPage({ params }) {
                 lastName: agent.lastName,
                 email: agent.email,
                 phone: agent.phone || '',
-                // Map display values to backend enum values
-                role: agent.role ? (displayToBackendRoleMapping[agent.role] || 'agent') : 'agent',
+                // Role is already in backend format, no need to map
+                role: agent.role || 'agent',
                 team: agent.team ? (displayToBackendTeamMapping[agent.team] || 'support') : 'support',
                 status: agent.status ? (displayToBackendStatusMapping[agent.status] || 'active') : 'active',
                 bio: agent.bio || '',
@@ -222,10 +217,12 @@ export default function EditAgentPage({ params }) {
             }
             
             console.log('Sending agent data:', {
+                originalRole: agent.role,
                 displayTeam: agent.team,
                 backendTeam: agentData.team,
                 displayStatus: agent.status,
-                backendStatus: agentData.status
+                backendStatus: agentData.status,
+                permissions: agentData.permissions
             })
             
             // Send the update request to the backend

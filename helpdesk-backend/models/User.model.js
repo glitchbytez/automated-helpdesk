@@ -68,7 +68,7 @@ const userSchema = new mongoose.Schema(
                     "deleteTickets",
                     "manageAgents",
                     "manageSettings",
-            
+                    "manageKnowledgeBase",
                 ],
             },
         ],
