@@ -147,7 +147,7 @@ EMAIL_PASSWORD=your_app_password
 JWT_SECRET=your_secure_jwt_secret
 ```
 
-> 📝 **Note**: See [Configuration Guide](#configuration-guide) for detailed environment variable descriptions.
+> 📝 **Note**: The project uses a **single centralized `.env` file** in the root directory. Docker Compose automatically reads this file and distributes the appropriate environment variables to each service. This approach ensures consistency and eliminates the confusion of multiple environment files.
 
 ---
 
