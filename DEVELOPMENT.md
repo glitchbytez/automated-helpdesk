@@ -286,7 +286,7 @@ docker compose exec chatbot-server npm test
 # Test API endpoints
 curl -X POST http://localhost:5500/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@example.com","password":"password"}'
+  -d '{"email":"admin@example.com","password":"admin123"}'
 
 # Test WebSocket connection
 node -e "

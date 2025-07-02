@@ -1,6 +1,7 @@
 import app from "./app.js"
 import mongoose from "mongoose"
 import {PORT, MONGODB_URI} from "./config/env.js"
+import { createDefaultAccounts } from "./utils/createDefaultAccounts.js"
 
 let server
 
@@ -17,6 +18,14 @@ async function startServer() {
     // Connect to MongoDB
     await mongoose.connect(MONGODB_URI)
     console.log("MongoDB connected successfully")
+
+    // Create default accounts if none exist
+    try {
+      await createDefaultAccounts()
+    } catch (error) {
+      console.error("⚠️  Warning: Could not create default accounts:", error.message)
+      // Don't stop server startup if default account creation fails
+    }
 
     // Start Express server
     server = app.listen(PORT, () => {

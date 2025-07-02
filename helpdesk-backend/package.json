@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "setup-accounts": "node scripts/setup-default-accounts.js",
+    "create-admin": "node scripts/create-admin-user.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

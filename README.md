@@ -126,9 +126,15 @@ cp .env.example .env
 # 3. Start all services
 docker compose up -d
 
-# 4. Access the applications
+# 4. Access the applications with default accounts (auto-created)
 # Helpdesk Dashboard: http://localhost:3001
 # Chatbot Interface: http://localhost:3000
+
+# 5. Default Login Credentials (auto-created on first startup)
+# Admin:  admin@example.com  / admin123
+# Agent:  agent@example.com  / agent123
+# User:   user@example.com   / user123
+# Note: Password change required on first login
 ```
 
 ### 🔧 **Configuration**
@@ -161,6 +167,18 @@ JWT_SECRET=your_secure_jwt_secret
 | **🌐 WebSocket Server** | http://localhost:5501 | Real-time communication |
 | **🗄️ Vector Database API** | http://localhost:5502 | Knowledge base management |
 | **🤖 Rasa API** | http://localhost:5005 | AI conversation engine |
+
+### 🔑 **Default Account Access**
+
+The system automatically creates default accounts when no users exist:
+
+| Role | Email | Password | Access Level |
+|------|-------|----------|--------------|
+| **Admin** | admin@example.com | admin123 | Full system access |
+| **Agent** | agent@example.com | agent123 | Support operations |
+| **User** | user@example.com | user123 | Limited access |
+
+> ⚠️ **Security Note**: All default accounts require password change on first login. Passwords are automatically hashed and secured.
 
 ---
 
