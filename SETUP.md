@@ -15,7 +15,7 @@ Before you start, make sure you have:
 
 ```bash
 # Clone the repository
-git clone <your-repository-url>
+git clone https://github.com/glitchbytez/complete-project.git
 cd campus-support-helpdesk
 
 # Copy environment template

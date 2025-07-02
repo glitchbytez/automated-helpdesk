@@ -19,9 +19,8 @@ We take security seriously and appreciate your help in keeping our project secur
 
 Instead, please report them privately:
 
-1. **Email**: Send details to [security@your-domain.com] (if available)
+1. **Email**: Send details to [ronald.matimba@students.uz.ac.zw] (if available)
 2. **GitHub Security**: Use GitHub's private vulnerability reporting feature
-3. **Encrypted Communication**: Use our PGP key for sensitive reports (if available)
 
 ### 📋 What to Include
 
@@ -136,7 +135,7 @@ We recognize and thank security researchers who help improve our security:
 
 For security-related questions or concerns:
 
-- **Security Team**: [security@your-domain.com]
+- **Security Team**: [ronald.matimba@students.uz.ac.zw]
 - **General Issues**: Create a GitHub issue (for non-security issues)
 - **Documentation**: Check our security documentation
 
