@@ -116,7 +116,7 @@ graph TB
 
 ```bash
 # 1. Clone the repository
-git clone <your-repository-url>
+git clone https://github.com/glitchbytez/complete-project.git
 cd campus-support-helpdesk
 
 # 2. Create environment file
@@ -295,40 +295,32 @@ The application is designed to be cloud-native and can be deployed on:
 
 ---
 
-## 📚 Documentation
+## 📚 Complete Documentation Suite
 
-### 📖 **Available Documentation**
+The Campus Support Helpdesk System comes with comprehensive documentation for all users:
 
-- [📋 **Setup Guide**](DOCKER_SETUP.md) - Detailed setup instructions
-- [🔧 **Development Guide**](DEVELOPMENT.md) - Development best practices
+### 🎯 **For End Users**
+- [📖 **User Manual**](USER_MANUAL.md) - Complete guide covering all features and workflows
+- [⚡ **Quick Reference**](QUICK_REFERENCE.md) - Essential information for daily use
+- [📚 **User Guide Directory**](docs/USER_GUIDE.md) - Organized documentation index
+
+### 🚀 **For Getting Started**
+- [⚡ **Quick Setup**](SETUP.md) - Get running in 5 minutes
+- [🔧 **Development Setup**](DEVELOPMENT.md) - Detailed development guide
+- [🐳 **Docker Setup**](DOCKER_SETUP.md) - Container deployment guide
+
+### 👨‍💻 **For Developers & Administrators**
 - [🎯 **API Documentation**](helpdesk-backend/docs/technical/api.md) - REST API reference
 - [👨‍💼 **Admin Guide**](helpdesk-backend/docs/user/admin-guide.md) - Administrative functions
 - [🏗️ **Architecture Guide**](helpdesk-frontend/docs/technical/architecture.md) - System architecture
 - [🤖 **Rasa Training Guide**](rasa-backend/docs/user/training-guide.md) - AI model training
 
-### 🛠️ **Configuration Guide**
+### 🤝 **For Contributors**
+- [🤝 **Contributing Guide**](CONTRIBUTING.md) - How to contribute to the project
+- [🔒 **Security Policy**](SECURITY.md) - Security guidelines and reporting
+- [📄 **License**](LICENSE) - MIT License terms
 
-<details>
-<summary>📝 Environment Variables Reference</summary>
-
-#### Required Variables
-```bash
-OPENAI_API_KEY=sk-proj-xxx          # OpenAI API key for embeddings
-RASA_PRO_LICENSE=eyJ...             # Rasa Pro license token
-EMAIL_USER=your@email.com           # SMTP email for notifications
-EMAIL_PASSWORD=your_app_password    # Email app-specific password
-JWT_SECRET=your_secure_secret       # JWT signing secret
-```
-
-#### Optional Variables
-```bash
-MONGODB_URI=mongodb://...           # Custom MongoDB connection
-MILVUS_HOST=localhost              # Milvus database host
-COLLECTION_NAME=helpdesk_vectors   # Vector collection name
-LOG_LEVEL=info                     # Application log level
-```
-
-</details>
+> 💡 **Quick Start**: New to the system? Start with the [Quick Reference](QUICK_REFERENCE.md) and then dive into the [User Manual](USER_MANUAL.md) as needed.
 
 ---
 
