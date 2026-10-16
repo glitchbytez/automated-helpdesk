@@ -1,75 +1,46 @@
-# 🎓 Campus Support Helpdesk System
+# Automated Helpdesk
 
-<div align="center">
+A campus support helpdesk with an AI chatbot. Students and staff can raise and track support tickets through a web based chatbot, which answers from a searchable knowledge base and can create a ticket or hand the conversation to a human agent.
 
-![Campus Support](https://img.shields.io/badge/Campus-Support-blue?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)
-![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js)
-![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=next.js)
-![Rasa](https://img.shields.io/badge/Rasa-3.6-5A17EE?style=for-the-badge&logo=rasa)
+I designed and built it on my own as my final-year Computer Science capstone project.
 
-**A comprehensive multi-service application designed to streamline campus support operations with an integrated helpdesk system and AI-powered chatbot.**
+## What it does
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Documentation](#-documentation) • [Contributing](#-contributing)
+**Helpdesk**
+- Create, assign, track and resolve tickets through their full lifecycle
+- Admin, agent and user roles with role-based permissions
+- Live ticket updates over WebSockets
+- Email notifications for ticket changes
+- A knowledge base with semantic search
+- Reporting and metrics for agents and admins
 
-</div>
+**Chatbot**
+- Intent recognition and conversation handling with Rasa
+- Retrieval-augmented answers: relevant knowledge base content is found by meaning rather than exact keywords (OpenAI embeddings stored in Milvus), and the reply is generated from it
+- Ticket creation and lookup from inside the chat
+- Handoff to a human agent, with the conversation passed along
 
----
-
-## 🌟 Features
-
-### 🎯 **Helpdesk System**
-- **📋 Ticket Management**: Create, assign, track, and resolve support tickets with full lifecycle management
-- **👥 Role-Based Access**: Comprehensive admin, agent, and user roles with granular permissions
-- **⚡ Real-time Updates**: WebSocket-based live ticket status updates and notifications
-- **📚 Knowledge Base**: Centralized document management with semantic search capabilities
-- **📊 Analytics & Reporting**: Comprehensive metrics, performance tracking, and detailed reports
-- **📧 Email Notifications**: Automated email alerts for ticket updates and status changes
-- **🔐 Security**: JWT authentication, role-based authorization, and input validation
-
-### 🤖 **AI-Powered Chatbot**
-- **🧠 Intelligent Responses**: Rasa-powered NLU for natural conversation flow and intent recognition
-- **💭 Context Awareness**: Maintains conversation context across multiple interactions
-- **🎫 Ticket Integration**: Direct ticket creation and tracking from chat interface
-- **🔍 Vector Search**: Semantic search through knowledge base using Milvus vector database
-- **🤝 Human Handoff**: Seamless escalation to human agents with context preservation
-- **📱 Multi-channel**: Web interface with extensible architecture for additional platforms
-
-### 🛠️ **Technical Excellence**
-- **🏗️ Microservices Architecture**: Scalable, maintainable service-based design
-- **🔄 Real-time Communication**: WebSocket connections for live updates and notifications
-- **🗃️ Vector Database**: Milvus for efficient similarity search and semantic understanding
-- **🤖 AI Embeddings**: OpenAI embeddings for advanced semantic text processing
-- **📱 Responsive Design**: Modern, mobile-first UI built with Tailwind CSS and shadcn/ui
-- **🐳 Containerized**: Complete Docker setup for development and production deployment
-
----
-
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph Frontend
         HF[Helpdesk Frontend<br/>Next.js]
         CF[Chatbot Frontend<br/>Next.js]
     end
-    
-    subgraph "API Layer"
-        HB[Helpdesk Backend<br/>Node.js/Express]
-        CS[Chatbot Server<br/>WebSocket]
-        CDS[Chatbot Data Service<br/>Vector Management]
+
+    subgraph Services
+        HB[Helpdesk Backend<br/>Node.js / Express]
+        CS[Chatbot Server<br/>Socket.IO]
+        CDS[Chatbot Data Service<br/>Vector management]
+        RB[Rasa Backend<br/>Python / Rasa]
     end
-    
-    subgraph "AI Layer"
-        RB[Rasa Backend<br/>Python/Rasa]
+
+    subgraph Data
+        MDB[(MongoDB)]
+        MVS[(Milvus)]
     end
-    
-    subgraph "Data Layer"
-        MDB[(MongoDB<br/>Primary Database)]
-        MVS[(Milvus<br/>Vector Database)]
-    end
-    
+
     HF --> HB
     CF --> CS
     CF --> CDS
@@ -79,321 +50,126 @@ graph TB
     RB --> MVS
     HB --> MDB
     CS --> MDB
-    
-    style HF fill:#e1f5fe
-    style CF fill:#e1f5fe
-    style HB fill:#f3e5f5
-    style CS fill:#f3e5f5
-    style CDS fill:#f3e5f5
-    style RB fill:#fff3e0
-    style MDB fill:#e8f5e8
-    style MVS fill:#e8f5e8
 ```
 
-### 🔧 **Service Overview**
+In short: the chat interface talks to the chatbot server over WebSockets. Rasa works out what the user wants. For questions, the relevant knowledge base content is retrieved from Milvus and used to generate the answer. Anything ticket-related goes through the helpdesk backend, which stores its data in MongoDB.
 
-| Service | Port | Technology | Purpose |
-|---------|------|------------|---------|
-| **Helpdesk Frontend** | 3001 | Next.js 14, Tailwind CSS | Main support dashboard interface |
-| **Chatbot Frontend** | 3000 | Next.js 14, Socket.IO | Interactive chat interface |
-| **Helpdesk Backend** | 5500 | Node.js, Express, MongoDB | Core business logic & REST API |
-| **Chatbot Server** | 5501 | Node.js, Socket.IO | WebSocket server for real-time chat |
-| **Chatbot Data Service** | 5502 | Node.js, Milvus | Vector database management |
-| **Rasa Backend** | 5005 | Python, Rasa 3.6 | Conversational AI engine |
+| Service | Port | Stack | Role |
+|---|---|---|---|
+| Helpdesk Frontend | 3001 | Next.js 14, Tailwind CSS, shadcn/ui | Support dashboard |
+| Chatbot Frontend | 3000 | Next.js 14, Socket.IO client | Chat interface |
+| Helpdesk Backend | 5500 | Node.js, Express, MongoDB | Business logic and REST API |
+| Chatbot Server | 5501 | Node.js, Socket.IO | Real-time chat server |
+| Chatbot Data Service | 5502 | Node.js, Milvus | Knowledge base and vector management |
+| Rasa Backend | 5005 | Python, Rasa 3.6 | Conversational AI |
 
----
+## Tech stack
 
-## 🚀 Quick Start
+- **Frontend:** Next.js 14, Tailwind CSS, shadcn/ui, React Hook Form, Socket.IO client
+- **Backend:** Node.js, Express, Socket.IO, JWT authentication
+- **AI:** Rasa 3.6 (Python and YAML), retrieval-augmented generation, OpenAI embeddings, Milvus, LangChain
+- **Data:** MongoDB, Milvus
+- **Infrastructure:** Docker and Docker Compose
 
-### 📋 **Prerequisites**
+## Getting started
 
-- **Docker & Docker Compose** (recommended for quick setup)
-- **Node.js 18+** (for local development)
-- **Python 3.8+** (for Rasa development)
-- **OpenAI API Key** (required for AI features)
-
-### ⚡ **1-Minute Setup**
+You will need Docker with Docker Compose, and an OpenAI API key. Node.js 18+ and Python 3.8+ are only needed if you run services outside Docker.
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/glitchbytez/complete-project.git
-cd campus-support-helpdesk
+git clone https://github.com/glitchbytez/automated-helpdesk.git
+cd automated-helpdesk
 
-# 2. Create environment file
 cp .env.example .env
-# Edit .env with your actual values (see Configuration section)
+# edit .env with your own values
 
-# 3. Start all services
 docker compose up -d
-
-# 4. Access the applications with default accounts (auto-created)
-# Helpdesk Dashboard: http://localhost:3001
-# Chatbot Interface: http://localhost:3000
-
-# 5. Default Login Credentials (auto-created on first startup)
-# Admin:  admin@example.com  / admin123
-# Agent:  agent@example.com  / agent123
-# User:   user@example.com   / user123
-# Note: Password change required on first login
 ```
 
-### 🔧 **Configuration**
+Then open:
 
-Create your `.env` file with the following required variables:
+- Helpdesk dashboard: http://localhost:3001
+- Chatbot: http://localhost:3000
 
-```bash
-# Copy the example file
-cp .env.example .env
+### Configuration
 
-# Essential configurations:
-OPENAI_API_KEY=your_openai_api_key_here
-RASA_PRO_LICENSE=your_rasa_license_here
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASSWORD=your_app_password
-JWT_SECRET=your_secure_jwt_secret
-```
+All services read from a single `.env` file in the project root.
 
-> 📝 **Note**: The project uses a **single centralized `.env` file** in the root directory. Docker Compose automatically reads this file and distributes the appropriate environment variables to each service. This approach ensures consistency and eliminates the confusion of multiple environment files.
+| Variable | Purpose |
+|---|---|
+| `OPENAI_API_KEY` | Embeddings for knowledge base search |
+| `RASA_PRO_LICENSE` | Rasa license key |
+| `JWT_SECRET` | Signing key for auth tokens |
+| `EMAIL_USER` / `EMAIL_PASSWORD` | Account used to send notification emails |
 
----
+Seed accounts for each role are created on first start. See [SETUP.md](SETUP.md) for details. Passwords must be changed on first login.
 
-## 📡 Service Endpoints
+## Development
 
-| Service | Development URL | Purpose |
-|---------|----------------|---------|
-| **🏠 Helpdesk Dashboard** | http://localhost:3001 | Main support interface |
-| **💬 Chatbot Interface** | http://localhost:3000 | AI chat interface |
-| **🔌 Helpdesk API** | http://localhost:5500 | REST API endpoints |
-| **🌐 WebSocket Server** | http://localhost:5501 | Real-time communication |
-| **🗄️ Vector Database API** | http://localhost:5502 | Knowledge base management |
-| **🤖 Rasa API** | http://localhost:5005 | AI conversation engine |
-
-### 🔑 **Default Account Access**
-
-The system automatically creates default accounts when no users exist:
-
-| Role | Email | Password | Access Level |
-|------|-------|----------|--------------|
-| **Admin** | admin@example.com | admin123 | Full system access |
-| **Agent** | agent@example.com | agent123 | Support operations |
-| **User** | user@example.com | user123 | Limited access |
-
-> ⚠️ **Security Note**: All default accounts require password change on first login. Passwords are automatically hashed and secured.
-
----
-
-## 🛠️ Development
-
-### 🏃‍♂️ **Local Development Setup**
+Run only the infrastructure in Docker and the services locally:
 
 ```bash
-# Start only infrastructure services
 docker compose up mongodb milvus etcd minio -d
 
-# Run services locally for development
 cd helpdesk-backend && npm install && npm run dev
 cd helpdesk-frontend && npm install && npm run dev
 cd chatbot-data-service && npm install && npm run dev
 cd chatbot-server && npm install && npm run dev
 cd chatbot-frontend && npm install && npm run dev
 
-# For Rasa development
 cd rasa-backend && pip install -r requirements.txt && rasa run --enable-api
 ```
 
-### 🔨 **Development Commands**
+Useful commands:
 
 ```bash
-# Service Management
-docker compose logs -f <service-name>        # View logs
-docker compose restart <service-name>        # Restart service
-docker compose exec <service-name> sh        # Enter container
-docker compose build <service-name>          # Rebuild service
-
-# Database Access
-mongosh mongodb://admin:password123@localhost:27017/helpdesk?authSource=admin
-
-# Health Checks
-curl http://localhost:5500/api/health        # Helpdesk API
-curl http://localhost:5502/api/health        # Vector Database
-curl http://localhost:5005/webhooks/rest/webhook # Rasa API
+docker compose logs -f <service>      # follow a service's logs
+docker compose restart <service>      # restart one service
+curl http://localhost:5500/api/health # helpdesk API health check
+curl http://localhost:5502/api/health # vector service health check
 ```
 
-### 🧪 **Testing**
+Backend tests:
 
 ```bash
-# Backend API Tests
 cd helpdesk-backend && npm test
-
-# Frontend Tests (if configured)
-cd helpdesk-frontend && npm test
-
-# Integration Tests
-docker compose -f docker-compose.test.yml up --abort-on-container-exit
 ```
 
----
+## Security
 
-## 🛡️ Security Features
+- JWT authentication with role-based authorization
+- Input validation and sanitization on API requests
+- Rate limiting on the API
+- Configured CORS
+- Secrets kept in environment variables, never committed
 
-- **🔐 JWT Authentication**: Secure API access with refresh token support
-- **⏱️ Rate Limiting**: API request throttling to prevent abuse
-- **🛡️ Input Validation**: Comprehensive request sanitization and validation
-- **🌐 CORS Configuration**: Secure cross-origin resource sharing
-- **🔑 Environment Security**: Secure credential management and encryption
-- **👥 Role-Based Access**: Granular permissions and access control
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
----
+## Documentation
 
-## 🔧 Technology Stack
+- [User Manual](USER_MANUAL.md) and [Quick Reference](QUICK_REFERENCE.md)
+- [Setup](SETUP.md), [Development](DEVELOPMENT.md) and [Docker Setup](DOCKER_SETUP.md)
+- [API reference](helpdesk-backend/docs/technical/api.md)
+- [Admin guide](helpdesk-backend/docs/user/admin-guide.md)
+- [Architecture notes](helpdesk-frontend/docs/technical/architecture.md)
+- [Rasa training guide](rasa-backend/docs/user/training-guide.md)
 
-### **Frontend Technologies**
-- **Next.js 14** - React framework with App Router
-- **Tailwind CSS** - Utility-first styling framework
-- **shadcn/ui** - Modern, accessible UI components
-- **Socket.IO Client** - Real-time communication
-- **React Hook Form** - Form handling and validation
+## Roadmap
 
-### **Backend Technologies**
-- **Node.js/Express** - REST API development
-- **Socket.IO** - WebSocket server for real-time features
-- **Rasa 3.6** - Open source conversational AI
-- **MongoDB** - Document database for structured data
-- **Milvus** - Vector database for AI embeddings
+- Additional chat channels beyond the web interface, such as WhatsApp, Slack or Microsoft Teams
+- Automated test coverage across all services, run on every push in a CI pipeline
+- Ticket SLA timers with automatic escalation
+- Satisfaction ratings after a ticket is resolved
+- Multilingual support in the chatbot and knowledge base
+- A production deployment guide covering HTTPS, secrets management and monitoring
 
-### **AI/ML Technologies**
-- **OpenAI API** - Text embeddings and AI processing
-- **Rasa NLU** - Natural language understanding
-- **Vector Similarity Search** - Semantic search capabilities
-- **LangChain** - AI application development framework
+## Contributing
 
-### **Infrastructure**
-- **Docker & Docker Compose** - Containerization and orchestration
-- **Nginx** - Load balancing and reverse proxy (production)
-- **PM2** - Process management for Node.js applications
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
----
+## License
 
-## 📊 Monitoring & Health Checks
+MIT. See [LICENSE](LICENSE).
 
-Each service includes comprehensive health monitoring:
+## Acknowledgments
 
-- **`/health`** - Basic service status
-- **`/api/health`** - Detailed health information
-- **Built-in Docker health checks** - Container-level monitoring
-- **Performance metrics** - Response time and throughput tracking
-- **Error logging** - Comprehensive error tracking and reporting
-
----
-
-## 🚀 Deployment
-
-### 🏠 **Local Development**
-```bash
-docker compose up -d
-```
-
-### 🌐 **Production Deployment**
-```bash
-# Using production configuration
-docker compose -f docker-compose.prod.yml up -d
-
-# With environment file
-docker compose --env-file .env.production up -d
-```
-
-### ☁️ **Cloud Deployment**
-
-The application is designed to be cloud-native and can be deployed on:
-
-- **AWS**: ECS, EKS, or EC2 with Docker
-- **Azure**: Container Instances or AKS
-- **Google Cloud**: Cloud Run or GKE
-- **DigitalOcean**: App Platform or Droplets
-
----
-
-## 📚 Complete Documentation Suite
-
-The Campus Support Helpdesk System comes with comprehensive documentation for all users:
-
-### 🎯 **For End Users**
-- [📖 **User Manual**](USER_MANUAL.md) - Complete guide covering all features and workflows
-- [⚡ **Quick Reference**](QUICK_REFERENCE.md) - Essential information for daily use
-- [📚 **User Guide Directory**](docs/USER_GUIDE.md) - Organized documentation index
-
-### 🚀 **For Getting Started**
-- [⚡ **Quick Setup**](SETUP.md) - Get running in 5 minutes
-- [🔧 **Development Setup**](DEVELOPMENT.md) - Detailed development guide
-- [🐳 **Docker Setup**](DOCKER_SETUP.md) - Container deployment guide
-
-### 👨‍💻 **For Developers & Administrators**
-- [🎯 **API Documentation**](helpdesk-backend/docs/technical/api.md) - REST API reference
-- [👨‍💼 **Admin Guide**](helpdesk-backend/docs/user/admin-guide.md) - Administrative functions
-- [🏗️ **Architecture Guide**](helpdesk-frontend/docs/technical/architecture.md) - System architecture
-- [🤖 **Rasa Training Guide**](rasa-backend/docs/user/training-guide.md) - AI model training
-
-### 🤝 **For Contributors**
-- [🤝 **Contributing Guide**](CONTRIBUTING.md) - How to contribute to the project
-- [🔒 **Security Policy**](SECURITY.md) - Security guidelines and reporting
-- [📄 **License**](LICENSE) - MIT License terms
-
-> 💡 **Quick Start**: New to the system? Start with the [Quick Reference](QUICK_REFERENCE.md) and then dive into the [User Manual](USER_MANUAL.md) as needed.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our contributing guidelines:
-
-### 🌟 **How to Contribute**
-
-1. **🍴 Fork the repository**
-2. **🌿 Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **💝 Commit your changes**: `git commit -m 'Add amazing feature'`
-4. **📤 Push to the branch**: `git push origin feature/amazing-feature`
-5. **🔀 Open a Pull Request**
-
-### 📋 **Development Guidelines**
-
-- Follow the existing code style and conventions
-- Add tests for new features when possible
-- Update documentation for significant changes
-- Ensure Docker builds pass before submitting PRs
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 💖 Acknowledgments
-
-- **Rasa** for the open-source conversational AI platform
-- **Milvus** for the vector database technology
-- **OpenAI** for the embedding models
-- **Next.js & Tailwind CSS** for the modern frontend framework
-- **shadcn/ui** for the beautiful UI components
-
----
-
-## 🆘 Support
-
-If you encounter any issues or have questions:
-
-1. **📖 Check the documentation** in the `docs/` directories
-2. **🔍 Search existing issues** in the GitHub repository
-3. **🆕 Create a new issue** with detailed information
-4. **💬 Join our community** discussions
-
----
-
-<div align="center">
-
-**⭐ If this project helped you, please consider giving it a star! ⭐**
-
-Made with ❤️ for campus communities worldwide
-
-</div> 
+Built with [Rasa](https://rasa.com), [Milvus](https://milvus.io), [OpenAI](https://openai.com), [Next.js](https://nextjs.org) and [shadcn/ui](https://ui.shadcn.com).
